@@ -16,7 +16,7 @@
 @keyframes sheetin{from{transform:translateY(25px);opacity:0}to{transform:translateY(0);opacity:1}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}.js .reveal:not(.visible){opacity:1;transform:none}}
 .scene-fallback{position:absolute;inset:42% 10% auto;text-align:center;color:var(--muted);font-size:11px;line-height:1.8}.hero.immersive{position:fixed;inset:0;width:100vw;height:100dvh;min-height:0;max-height:none;z-index:100}.hero.immersive .hero-copy,.hero.immersive .hero-bottom,.hero.immersive .hero-wordmark{display:none}.hero.immersive .scene-wrap{inset:0;width:100%;height:100%;min-height:0;max-height:none}.hero.immersive .scene-tools{right:25px;bottom:30px}.hero.immersive .scene-caption{left:25px;bottom:85px}.hero.immersive .drag-hint{left:25px;bottom:47px}.immersive-open{overflow:hidden}
-@media(max-width:700px){.scene-wrap #scene{touch-action:pan-y}}
+.model-showcase .scene-wrap{position:relative;inset:auto;width:100%;height:520px;min-height:0;max-height:none;padding:0 5.5%}.model-showcase .scene-wrap #scene{width:100%;height:100%}@media(max-width:700px){.scene-wrap #scene{touch-action:pan-y}}
 
 @media(max-width:700px){.section-note{font-size:12px}.career-panel>p{font-size:12px}.career-panel li{font-size:12px;line-height:1.9}.career-tags>span{font-size:8px}.project-bottom div>p:last-child{font-size:12px}.career-panel{min-height:422px}.dialog-top{touch-action:none}.dialog-content li{font-size:12px}}
 
