@@ -35,27 +35,29 @@ export function initScene(container, { onModeChange, initialMode = 'ai', paused:
   renderer.setClearColor(0x16294a, 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.85;
+  renderer.toneMappingExposure = 1.02;
   renderer.domElement.setAttribute('aria-hidden', 'true');
   renderer.domElement.style.cssText = 'display:block;width:100%;height:100%;touch-action:pan-y;outline:none;';
   container.append(renderer.domElement);
 
   const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0x122244, 100, 500);
+  scene.environmentIntensity = 0.25;
   const camera = new THREE.PerspectiveCamera(30, 1, 0.5, 600);
 
   // Post-processing pipeline
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
   const bloomPass = new UnrealBloomPass(
-    new THREE.Vector2(window.innerWidth, window.innerHeight), 0.45, 0.2, 0.6
+    new THREE.Vector2(window.innerWidth, window.innerHeight), 0.5, 0.42, 0.68
   );
   composer.addPass(bloomPass);
   const colorPass = new ShaderPass({
     uniforms: {
       tDiffuse: { value: null },
-      uSat: { value: 0.15 },
-      uCon: { value: 0.08 },
-      uLift: { value: 0.02 },
+      uSat: { value: 0.3 },
+      uCon: { value: 0.1 },
+      uLift: { value: 0.07 },
     },
     vertexShader: 'varying vec2 vUv;\nvoid main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
     fragmentShader: 'uniform sampler2D tDiffuse;\nuniform float uSat, uCon, uLift;\nvarying vec2 vUv;\nvoid main() {\n  vec3 c = texture2D(tDiffuse, vUv).rgb;\n  float l = dot(c, vec3(0.2126, 0.7152, 0.0722));\n  c = mix(vec3(l), c, 1.0 + uSat);\n  float wl = smoothstep(0.03, 0.16, l) * (1.0 - smoothstep(0.34, 0.72, l));\n  c += uLift * wl;\n  float w = 1.0 - smoothstep(0.55, 0.92, l);\n  c = (c - 0.5) * (1.0 + uCon * w) + 0.5;\n  gl_FragColor = vec4(clamp(c, 0.0, 1.0), 1.0);\n}',
@@ -82,29 +84,26 @@ export function initScene(container, { onModeChange, initialMode = 'ai', paused:
   renderer.domElement.style.touchAction = 'manipulation';
 
   // Direct lights avoid environment-map generation and screen-space refraction passes.
-  // Multi-color key/fill lighting matching reference quality
-  scene.add(new THREE.AmbientLight(0x2a3a5c, 1.1));
-  scene.add(new THREE.HemisphereLight(0x8eaacc, 0x1a2840, 0.9));
+  // Lighting: exact reference parameters
+  // Ambient + hemisphere are intentionally dim in reference
+  scene.add(new THREE.AmbientLight(0x8fa9d9, 0.15));
+  scene.add(new THREE.HemisphereLight(0x2f6dbf, 0x03062a, 0.2));
 
-  const key1 = new THREE.DirectionalLight(0xfff4e6, 5.5);
+  const key1 = new THREE.DirectionalLight(0xfff4e6, 1.08);
   key1.position.set(-120, 150, 95);
   scene.add(key1);
 
-  const key2 = new THREE.DirectionalLight(0xd0e0ff, 3.2);
+  const key2 = new THREE.DirectionalLight(0x9fbfe0, 0.64);
   key2.position.set(160, 92, -120);
   scene.add(key2);
 
-  const fill1 = new THREE.DirectionalLight(0xc8d8ff, 2.0);
+  const fill1 = new THREE.DirectionalLight(0x6f90c0, 0.4);
   fill1.position.set(40, 60, 190);
   scene.add(fill1);
 
-  const fill2 = new THREE.DirectionalLight(0xffe8d0, 1.2);
+  const fill2 = new THREE.DirectionalLight(0xffdcc0, 0.24);
   fill2.position.set(-90, 40, -160);
   scene.add(fill2);
-
-  const bottom = new THREE.DirectionalLight(0x8098c0, 0.6);
-  bottom.position.set(0, -30, 40);
-  scene.add(bottom);
 
   const geometryCache = new Map();
   const materialCache = new Map();
