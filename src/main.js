@@ -44,7 +44,7 @@ function setupKeyboardTabs(selector) {
 setupKeyboardTabs('[data-career]');
 setupKeyboardTabs('[data-world]');
 
-let scene, scenePromise, currentWorld = 'ai';
+let scene, scenePromise, currentWorld = 'energy';
 let paused = reducedMotion.matches;
 const worldCopy = {
   ai: ['AIMAGIC', 'AI 创意工具 · 独立全栈产品', 'AIMagic · AI 创意工具平台'],
