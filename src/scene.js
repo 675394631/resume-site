@@ -410,22 +410,45 @@ export function initScene(container, { onModeChange, initialMode = 'ai', paused:
     campusGroup.scale.setScalar(0.55);
     object.add(campusGroup);
     const dracoLoader = new DRACOLoader();
-    dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
+    dracoLoader.setDecoderPath('./draco/');
     const gltfLoader = new GLTFLoader();
     gltfLoader.setDRACOLoader(dracoLoader);
-    gltfLoader.load('./assets/energy-campus.glb', (gltf) => {
-      campusGroup.add(gltf.scene);
-    }, undefined, () => {
-      campusGroup.visible = false;
-    });
+    let campusLoaded = false;
+    gltfLoader.load('./assets/energy-campus.glb',
+      (gltf) => {
+        campusLoaded = true;
+        campusGroup.add(gltf.scene);
+        // Auto-fit: compute bounding box and scale to ~4 units wide
+        const box = new THREE.Box3().setFromObject(gltf.scene);
+        const size = box.getSize(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z);
+        if (maxDim > 0) {
+          const targetSize = 4.2;
+          const s = targetSize / maxDim;
+          campusGroup.scale.setScalar(s);
+          box.getCenter(campusGroup.position);
+          campusGroup.position.y += 0.55;
+        }
+      },
+      (progress) => {
+        if (progress.total > 0) {
+          campusGroup.visible = progress.loaded === progress.total;
+        }
+      },
+      (err) => {
+        console.warn('Energy campus model failed to load:', err);
+        campusGroup.visible = false;
+      }
+    );
 
     item.update = t => {
       object.rotation.y = -0.13 + Math.sin(t * 0.18) * 0.11;
       object.position.y = Math.sin(t * 0.6) * 0.08;
       markers.forEach(({ marker, y }, i) => { marker.position.y = y + Math.sin(t * 0.9 + i) * 0.05; });
       flowDots.forEach(({ curve, dot }, i) => dot.position.copy(curve.getPoint((t * 0.17 + i * 0.4) % 1)));
-      campusGroup.rotation.y += 0.003;
+      if (campusLoaded) campusGroup.rotation.y += 0.003;
     };
+
     return item;
   }
 
