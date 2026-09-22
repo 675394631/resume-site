@@ -41,9 +41,9 @@ export function initScene(container, { onModeChange, initialMode = 'ai', paused:
   container.append(renderer.domElement);
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0x122244, 100, 500);
+  scene.fog = new THREE.Fog(0x122222, 0.002);
   scene.environmentIntensity = 0.25;
-  const camera = new THREE.PerspectiveCamera(30, 1, 0.5, 600);
+  const camera = new THREE.PerspectiveCamera(42, 1, 0.8, 1600);
 
   // Post-processing pipeline
   const composer = new EffectComposer(renderer);
@@ -64,44 +64,44 @@ export function initScene(container, { onModeChange, initialMode = 'ai', paused:
   });
   composer.addPass(colorPass);
   composer.addPass(new OutputPass());
-  const initialCamera = new THREE.Vector3(14, 10, 20);
+  const initialCamera = new THREE.Vector3(-120.9, 93.3, 143.1);
   camera.position.copy(initialCamera);
   const controls = new OrbitControls(camera, renderer.domElement);
-  controls.target.set(0, 0.1, 0);
+  controls.target.set(-6, 6.2, -4);
   // Direct manipulation needs no idle damping loop and stops immediately after a gesture.
-  controls.enableDamping = false;
-  controls.enablePan = false;
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.055;
+  controls.enablePan = true;
   controls.enableZoom = true;
   controls.enableRotate = true;
   // Scrolling the résumé should keep working; zoom is available with touch pinch.
   controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.ROTATE };
   controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
-  controls.minDistance = 3;
-  controls.maxDistance = 120;
+  controls.minDistance = 45;
+  controls.maxDistance = 620;
   controls.minPolarAngle = Math.PI * 0.14;
-  controls.maxPolarAngle = Math.PI * 0.72;
+  controls.maxPolarAngle = Math.PI * 0.495;
   controls.update();
-  renderer.domElement.style.touchAction = 'manipulation';
 
   // Direct lights avoid environment-map generation and screen-space refraction passes.
   // Lighting: exact reference parameters
   // Ambient + hemisphere are intentionally dim in reference
-  scene.add(new THREE.AmbientLight(0x8fa9d9, 0.15));
-  scene.add(new THREE.HemisphereLight(0x2f6dbf, 0x03062a, 0.2));
+  scene.add(new THREE.AmbientLight(0x8fb6dd, 0.1));
+  scene.add(new THREE.HemisphereLight(0x2f6ea8, 0x03060c, 0.2));
 
   const key1 = new THREE.DirectionalLight(0xfff4e6, 1.08);
   key1.position.set(-120, 150, 95);
   scene.add(key1);
 
-  const key2 = new THREE.DirectionalLight(0x9fbfe0, 0.64);
+  const key2 = new THREE.DirectionalLight(0x9fc4ea, 0.64);
   key2.position.set(160, 92, -120);
   scene.add(key2);
 
-  const fill1 = new THREE.DirectionalLight(0x6f90c0, 0.4);
+  const fill1 = new THREE.DirectionalLight(0x6f92be, 0.4);
   fill1.position.set(40, 60, 190);
   scene.add(fill1);
 
-  const fill2 = new THREE.DirectionalLight(0xffdcc0, 0.24);
+  const fill2 = new THREE.DirectionalLight(0xffcf9a, 0.24);
   fill2.position.set(-90, 40, -160);
   scene.add(fill2);
 
@@ -550,7 +550,7 @@ export function initScene(container, { onModeChange, initialMode = 'ai', paused:
     const mobile = window.matchMedia('(max-width: 767px)').matches || window.matchMedia('(pointer: coarse)').matches;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, lowMemory ? 1 : mobile ? 1.25 : 1.5));
     camera.aspect = width / height;
-    camera.fov = camera.aspect < 1 ? THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(36 / 2)) / camera.aspect)) : 36;
+    camera.fov = 42;
     camera.updateProjectionMatrix();
     renderer.setSize(width, height, false);
     composer.setSize(width, height);
