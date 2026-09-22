@@ -37,7 +37,7 @@ export function initScene(container, { onModeChange, initialMode = 'ai', paused:
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(30, 1, 0.5, 600);
-  const initialCamera = new THREE.Vector3(22, 16, 28);
+  const initialCamera = new THREE.Vector3(14, 10, 20);
   camera.position.copy(initialCamera);
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(0, 0.1, 0);
@@ -49,12 +49,12 @@ export function initScene(container, { onModeChange, initialMode = 'ai', paused:
   // Scrolling the résumé should keep working; zoom is available with touch pinch.
   controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.ROTATE };
   controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
-  controls.minDistance = 8;
-  controls.maxDistance = 80;
+  controls.minDistance = 3;
+  controls.maxDistance = 120;
   controls.minPolarAngle = Math.PI * 0.14;
   controls.maxPolarAngle = Math.PI * 0.72;
   controls.update();
-  renderer.domElement.style.touchAction = 'pan-y';
+  renderer.domElement.style.touchAction = 'manipulation';
 
   // Direct lights avoid environment-map generation and screen-space refraction passes.
   scene.add(new THREE.HemisphereLight(0xbbc8ff, 0x302048, 1.35));
@@ -375,7 +375,7 @@ export function initScene(container, { onModeChange, initialMode = 'ai', paused:
         const box = new THREE.Box3().setFromObject(gltf.scene);
         const size = box.getSize(new THREE.Vector3());
         const maxDim = Math.max(size.x, size.y, size.z);
-        const s = 5.5 / Math.max(maxDim, 0.01);
+        const s = 12 / Math.max(maxDim, 0.01);
         modelGroup.scale.setScalar(s);
         const center = box.getCenter(new THREE.Vector3());
         modelGroup.position.set(-center.x * s, -box.min.y * s, -center.z * s);
