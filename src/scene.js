@@ -328,127 +328,66 @@ export function initScene(container, { onModeChange, initialMode = 'ai', paused:
   function createEnergy() {
     const item = makeRoot();
     const { object } = item;
+
+    // Clean platform
     const base = new THREE.Group();
-    base.position.y = -0.9;
+    base.position.y = -1.2;
     object.add(base);
-    rounded(base, [4.9, 0.28, 3.9], [0, 0, 0], glass(COLOR.blue, 0.76), 0.18);
-    rounded(base, [4.64, 0.065, 3.64], [0, 0.16, 0], standard(0x232d50, { roughness: 0.6, metalness: 0.15 }), 0.12);
-    strokeRect(base, 4.8, 3.8, 0.15, COLOR.blue, 0.75);
-    const edgeMat = standard(COLOR.ice, { roughness: 0.28, metalness: 0.55 });
-    const panelMat = standard(0x455fcc, { metalness: 0.2, roughness: 0.22 });
-    const solarGroup = new THREE.Group();
-    solarGroup.position.set(-1.0, 0.2, -0.4);
-    base.add(solarGroup);
-    for (let row = 0; row < 2; row++) {
-      for (let col = 0; col < 2; col++) {
-        const x = (col - 0.5) * 1.13;
-        const z = (row - 0.5) * 1.09;
-        rounded(solarGroup, [0.065, 0.39, 0.065], [x, 0.2, z], edgeMat, 0.015);
-        const solar = new THREE.Group();
-        solar.position.set(x, 0.43, z);
-        solar.rotation.x = -0.3;
-        rounded(solar, [1.02, 0.055, 0.84], [0, 0, 0], edgeMat, 0.018);
-        rounded(solar, [0.97, 0.025, 0.79], [0, 0.04, 0], panelMat, 0.008);
-        for (let n = 1; n < 4; n++) {
-          line(solar, [[-0.485 + n * 0.2425, 0.057, -0.39], [-0.485 + n * 0.2425, 0.057, 0.39]], COLOR.ice, 0.55);
-        }
-        for (let n = 1; n < 3; n++) {
-          line(solar, [[-0.485, 0.057, -0.395 + n * 0.2633], [0.485, 0.057, -0.395 + n * 0.2633]], COLOR.ice, 0.55);
-        }
-        solarGroup.add(solar);
-      }
-    }
-    // Paired storage cabinets with vents, state-of-charge strips, and a service rail.
-    for (let i = 0; i < 2; i++) {
-      const x = 0.63 + i * 0.69;
-      rounded(base, [0.61, 1.18, 0.59], [x, 0.8, -0.98], standard(0xd0d9ef, { roughness: 0.28, metalness: 0.25 }), 0.055);
-      rounded(base, [0.49, 1.03, 0.025], [x, 0.8, -0.671], standard(0x303d63), 0.025);
-      rounded(base, [0.23, 0.15, 0.04], [x, 1.12, -0.65], glow(COLOR.mint, 0.9), 0.015);
-      for (let v = 0; v < 5; v++) rounded(base, [0.3, 0.025, 0.018], [x, 0.47 + v * 0.09, -0.65], standard(0x96a8cf), 0.008);
-    }
-    // Charging station: luminous display, pedestal, connected cable and compact car.
-    const charger = new THREE.Group();
-    charger.position.set(1.48, 0.2, 0.24);
-    base.add(charger);
-    rounded(charger, [0.55, 0.09, 0.47], [0, 0.05, 0], standard(COLOR.ink), 0.035);
-    rounded(charger, [0.41, 0.98, 0.28], [0, 0.57, 0], standard(COLOR.ice), 0.06);
-    rounded(charger, [0.3, 0.37, 0.038], [0, 0.78, 0.152], standard(0x14223f), 0.025);
-    rounded(charger, [0.15, 0.19, 0.04], [0, 0.81, 0.178], glow(COLOR.mint, 0.8), 0.014);
-    tube(charger, [[0.18, 0.62, 0.09], [0.42, 0.42, 0.15], [0.37, 0.18, 0.37], [0.2, 0.28, 0.49]], COLOR.ink, 0.025);
-    const car = new THREE.Group();
-    car.position.set(0.7, 0.39, 1.14);
-    base.add(car);
-    rounded(car, [1.3, 0.23, 0.66], [0, 0, 0], standard(COLOR.violet), 0.12);
-    rounded(car, [0.69, 0.23, 0.57], [-0.06, 0.19, 0], standard(0x788cce, { metalness: 0.55, roughness: 0.17 }), 0.11);
-    [-0.39, 0.39].forEach(x => [-0.32, 0.32].forEach(z => {
-      const wheel = new THREE.Mesh(geometry('wheel', () => new THREE.CylinderGeometry(0.14, 0.14, 0.09, 12)), standard(0x12192c));
-      wheel.rotation.x = Math.PI / 2;
-      wheel.position.set(x, -0.06, z);
-      car.add(wheel);
-    }));
-    [-0.2, 0.2].forEach(z => rounded(car, [0.025, 0.05, 0.13], [0.65, 0.02, z], glow(COLOR.ice, 1), 0.013));
-    const routes = [
-      tube(base, [[-1, 0.207, 0.69], [-1, 0.207, 1.39], [-0.1, 0.207, 1.39], [-0.1, 0.207, -0.35], [0.96, 0.207, -0.35]], COLOR.mint, 0.016),
-      tube(base, [[0.96, 0.209, -0.35], [1.87, 0.209, -0.35], [1.88, 0.209, 0.45], [1.5, 0.209, 0.45]], COLOR.peach, 0.016),
-    ];
-    const flowDots = routes.map((route, i) => ({ ...route, dot: sphere(base, 0.052, [0, 0, 0], glow(i ? COLOR.peach : COLOR.mint, 2), 12) }));
-    // Three suspended telemetry markers above generation, storage and charging.
-    const markers = [];
-    [[-1.02, 1.72, -0.52], [0.99, 1.86, -0.98], [1.48, 1.64, 0.24]].forEach((position, i) => {
-      const marker = new THREE.Group();
-      marker.position.set(...position);
-      const halo = ring(marker, 0.19, 0.018, glow([COLOR.blue, COLOR.mint, COLOR.peach][i], 0.9));
-      halo.rotation.set(Math.PI / 2, 0, 0);
-      sphere(marker, 0.055, [0, 0, 0], glow([COLOR.blue, COLOR.mint, COLOR.peach][i], 0.9), 16);
-      line(base, [[position[0], position[1] - 0.18, position[2]], [position[0], position[1] - 0.45, position[2]]], [COLOR.blue, COLOR.mint, COLOR.peach][i], 0.4);
-      base.add(marker);
-      markers.push({ marker, y: position[1] });
+    rounded(base, [5.6, 0.18, 5.6], [0, 0, 0], glass(COLOR.blue, 0.5), 0.3);
+    strokeRect(base, 5.4, 5.4, 0.1, COLOR.blue, 0.5);
+
+    // Corner accent dots
+    [[-2.7, -2.7], [2.7, -2.7], [-2.7, 2.7], [2.7, 2.7]].forEach(([x, z]) => {
+      sphere(base, 0.08, [x, 0.1, z], glow(COLOR.mint, 0.6), 12);
     });
-    // Load the GLB energy campus model (Draco-compressed).
-    const campusGroup = new THREE.Group();
-    campusGroup.position.set(0, 0.35, 0.2);
-    campusGroup.scale.setScalar(0.55);
-    object.add(campusGroup);
+
+    // GLB campus model — the star of the show
+    const modelGroup = new THREE.Group();
+    object.add(modelGroup);
+    
     const dracoLoader = new DRACOLoader();
     dracoLoader.setDecoderPath('./draco/');
     const gltfLoader = new GLTFLoader();
     gltfLoader.setDRACOLoader(dracoLoader);
-    let campusLoaded = false;
+    
+    let modelReady = false;
+    const loadingRing = ring(object, 1.2, 0.015, glow(COLOR.mint, 0.7));
+    loadingRing.rotation.x = Math.PI / 2;
+    loadingRing.name = 'loadingRing';
+
     gltfLoader.load('./assets/energy-campus.glb',
       (gltf) => {
-        campusLoaded = true;
-        campusGroup.add(gltf.scene);
-        // Auto-fit: compute bounding box and scale to ~4 units wide
+        modelReady = true;
+        object.remove(loadingRing);
+        modelGroup.add(gltf.scene);
         const box = new THREE.Box3().setFromObject(gltf.scene);
         const size = box.getSize(new THREE.Vector3());
         const maxDim = Math.max(size.x, size.y, size.z);
         if (maxDim > 0) {
-          const targetSize = 4.2;
-          const s = targetSize / maxDim;
-          campusGroup.scale.setScalar(s);
-          box.getCenter(campusGroup.position);
-          campusGroup.position.y += 0.55;
+          const targetSize = 4.8;
+          modelGroup.scale.setScalar(targetSize / maxDim);
+          const center = box.getCenter(new THREE.Vector3());
+          modelGroup.position.set(-center.x * modelGroup.scale.x, -center.y * modelGroup.scale.y + 0.3, -center.z * modelGroup.scale.z);
         }
       },
-      (progress) => {
-        if (progress.total > 0) {
-          campusGroup.visible = progress.loaded === progress.total;
-        }
-      },
+      undefined,
       (err) => {
         console.warn('Energy campus model failed to load:', err);
-        campusGroup.visible = false;
+        object.remove(loadingRing);
       }
     );
 
     item.update = t => {
-      object.rotation.y = -0.13 + Math.sin(t * 0.18) * 0.11;
-      object.position.y = Math.sin(t * 0.6) * 0.08;
-      markers.forEach(({ marker, y }, i) => { marker.position.y = y + Math.sin(t * 0.9 + i) * 0.05; });
-      flowDots.forEach(({ curve, dot }, i) => dot.position.copy(curve.getPoint((t * 0.17 + i * 0.4) % 1)));
-      if (campusLoaded) campusGroup.rotation.y += 0.003;
+      object.rotation.y = Math.sin(t * 0.15) * 0.15;
+      object.position.y = Math.sin(t * 0.5) * 0.06;
+      if (!modelReady && loadingRing.parent) {
+        loadingRing.rotation.z += 0.04;
+        loadingRing.material.opacity = 0.65 + Math.sin(t * 3) * 0.1;
+      }
+      if (modelReady) {
+        modelGroup.rotation.y += 0.003;
+      }
     };
-
     return item;
   }
 
