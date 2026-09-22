@@ -47,9 +47,9 @@ setupKeyboardTabs('[data-world]');
 let scene, scenePromise, currentWorld = 'ai';
 let paused = reducedMotion.matches;
 const worldCopy = {
-  ai: ['AI APPLICATIONS', 'AIMagic · 独立全栈产品', 'AI 全栈 · 独立开发与运维'],
+  ai: ['AIMAGIC', 'AI 创意工具 · 独立全栈产品', 'AIMagic · AI 创意工具平台'],
   canvas: ['CANVAS EDITOR', 'React / 无限画布二次开发', '无限画布 · 模型接入与节点编排'],
-  energy: ['3D VISUALIZATION', 'Blender / Three.js', '数字孪生 · 光储充微电网'],
+  energy: ['3D MODEL SHOWCASE', 'Blender / Three.js / GLB', '模型展示 · 智慧能源园区'],
 };
 const posters = { ai: './assets/scene-ai.webp', canvas: './assets/scene-canvas.webp', energy: './assets/scene-energy.webp' };
 function selectWorld(mode) {
