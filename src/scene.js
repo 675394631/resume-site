@@ -3,6 +3,11 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 const COLOR = {
   ink: 0x10162a, blue: 0x8b9dff, violet: 0xb7a0fb,
@@ -57,13 +62,29 @@ export function initScene(container, { onModeChange, initialMode = 'ai', paused:
   renderer.domElement.style.touchAction = 'manipulation';
 
   // Direct lights avoid environment-map generation and screen-space refraction passes.
-  scene.add(new THREE.HemisphereLight(0xbbc8ff, 0x302048, 1.35));
-  const key = new THREE.DirectionalLight(0xf4f1ff, 2.3);
-  key.position.set(-4, 8, 5);
-  scene.add(key);
-  const rim = new THREE.DirectionalLight(COLOR.blue, 2.6);
-  rim.position.set(5, 2, -4);
-  scene.add(rim);
+  // Multi-color key/fill lighting matching reference quality
+  scene.add(new THREE.AmbientLight(0x2a3a5c, 1.1));
+  scene.add(new THREE.HemisphereLight(0x8eaacc, 0x1a2840, 0.9));
+
+  const key1 = new THREE.DirectionalLight(0xfff4e6, 5.5);
+  key1.position.set(-120, 150, 95);
+  scene.add(key1);
+
+  const key2 = new THREE.DirectionalLight(0xd0e0ff, 3.2);
+  key2.position.set(160, 92, -120);
+  scene.add(key2);
+
+  const fill1 = new THREE.DirectionalLight(0xc8d8ff, 2.0);
+  fill1.position.set(40, 60, 190);
+  scene.add(fill1);
+
+  const fill2 = new THREE.DirectionalLight(0xffe8d0, 1.2);
+  fill2.position.set(-90, 40, -160);
+  scene.add(fill2);
+
+  const bottom = new THREE.DirectionalLight(0x8098c0, 0.6);
+  bottom.position.set(0, -30, 40);
+  scene.add(bottom);
 
   const geometryCache = new Map();
   const materialCache = new Map();
@@ -378,7 +399,7 @@ export function initScene(container, { onModeChange, initialMode = 'ai', paused:
         const s = 12 / Math.max(maxDim, 0.01);
         modelGroup.scale.setScalar(s);
         const center = box.getCenter(new THREE.Vector3());
-        modelGroup.position.set(-center.x * s, -box.min.y * s, -center.z * s);
+        modelGroup.position.set(-center.x * s, -box.min.y * s + 0.8, -center.z * s);
         modelGroup.add(gltf.scene);
 
         // Holographic glow: make HOLO_ materials ethereal
@@ -485,7 +506,7 @@ export function initScene(container, { onModeChange, initialMode = 'ai', paused:
     }
     try {
       if (dirty || !paused) {
-        renderer.render(scene, camera);
+        composer.render();
         renderCount++;
         lastRendered = now;
         if (container.dataset.sceneReady !== 'true') container.dataset.sceneReady = 'true';
@@ -513,6 +534,7 @@ export function initScene(container, { onModeChange, initialMode = 'ai', paused:
     camera.fov = camera.aspect < 1 ? THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(36 / 2)) / camera.aspect)) : 36;
     camera.updateProjectionMatrix();
     renderer.setSize(width, height, false);
+    composer.setSize(width, height);
     invalidate();
   }
   const resizeObserver = new ResizeObserver(resize);
