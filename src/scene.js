@@ -42,6 +42,26 @@ export function initScene(container, { onModeChange, initialMode = 'ai', paused:
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(30, 1, 0.5, 600);
+
+  // Post-processing pipeline
+  const composer = new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene, camera));
+  const bloomPass = new UnrealBloomPass(
+    new THREE.Vector2(window.innerWidth, window.innerHeight), 0.45, 0.2, 0.6
+  );
+  composer.addPass(bloomPass);
+  const colorPass = new ShaderPass({
+    uniforms: {
+      tDiffuse: { value: null },
+      uSat: { value: 0.15 },
+      uCon: { value: 0.08 },
+      uLift: { value: 0.02 },
+    },
+    vertexShader: 'varying vec2 vUv;\nvoid main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: 'uniform sampler2D tDiffuse;\nuniform float uSat, uCon, uLift;\nvarying vec2 vUv;\nvoid main() {\n  vec3 c = texture2D(tDiffuse, vUv).rgb;\n  float l = dot(c, vec3(0.2126, 0.7152, 0.0722));\n  c = mix(vec3(l), c, 1.0 + uSat);\n  float wl = smoothstep(0.03, 0.16, l) * (1.0 - smoothstep(0.34, 0.72, l));\n  c += uLift * wl;\n  float w = 1.0 - smoothstep(0.55, 0.92, l);\n  c = (c - 0.5) * (1.0 + uCon * w) + 0.5;\n  gl_FragColor = vec4(clamp(c, 0.0, 1.0), 1.0);\n}',
+  });
+  composer.addPass(colorPass);
+  composer.addPass(new OutputPass());
   const initialCamera = new THREE.Vector3(14, 10, 20);
   camera.position.copy(initialCamera);
   const controls = new OrbitControls(camera, renderer.domElement);
