@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 
 const COLOR = {
   ink: 0x10162a, blue: 0x8b9dff, violet: 0xb7a0fb,
@@ -402,11 +404,27 @@ export function initScene(container, { onModeChange, initialMode = 'ai', paused:
       base.add(marker);
       markers.push({ marker, y: position[1] });
     });
+    // Load the GLB energy campus model (Draco-compressed).
+    const campusGroup = new THREE.Group();
+    campusGroup.position.set(0, 0.35, 0.2);
+    campusGroup.scale.setScalar(0.55);
+    object.add(campusGroup);
+    const dracoLoader = new DRACOLoader();
+    dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
+    const gltfLoader = new GLTFLoader();
+    gltfLoader.setDRACOLoader(dracoLoader);
+    gltfLoader.load('./assets/energy-campus.glb', (gltf) => {
+      campusGroup.add(gltf.scene);
+    }, undefined, () => {
+      campusGroup.visible = false;
+    });
+
     item.update = t => {
       object.rotation.y = -0.13 + Math.sin(t * 0.18) * 0.11;
       object.position.y = Math.sin(t * 0.6) * 0.08;
       markers.forEach(({ marker, y }, i) => { marker.position.y = y + Math.sin(t * 0.9 + i) * 0.05; });
       flowDots.forEach(({ curve, dot }, i) => dot.position.copy(curve.getPoint((t * 0.17 + i * 0.4) % 1)));
+      campusGroup.rotation.y += 0.003;
     };
     return item;
   }
