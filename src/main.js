@@ -72,9 +72,6 @@ $('#reset-scene').addEventListener('click', () => { scene?.resetView(); toast('�
 reducedMotion.addEventListener('change', event => { paused = event.matches; updatePauseUI(); });
 function activateScene() {
   if (scenePromise) return scenePromise;
-  const button = $('#launch-scene');
-  button.disabled = true;
-  button.textContent = '正在加载…';
   $('#scene-loading').hidden = false;
   scenePromise = import('./scene.js').then(({ initScene }) => {
     scene = initScene($('#scene'), { initialMode: currentWorld, paused, suspended: $('#project-dialog').open });
@@ -84,11 +81,9 @@ function activateScene() {
       if (ready === 'true') {
         $('#scene-wrap').classList.add('scene-live');
         $('#scene-loading').hidden = true;
-        button.hidden = true;
         $('.drag-hint').innerHTML = '<span aria-hidden="true">⤧</span> 拖拽旋转 · 双指缩放';
       } else if (ready === 'fallback') {
         $('#scene-loading').hidden = true;
-        button.hidden = true;
         $('#scene-wrap').classList.remove('scene-live');
       }
     };
@@ -98,14 +93,17 @@ function activateScene() {
     return scene;
   }).catch(() => {
     scenePromise = null;
-    button.disabled = false;
-    button.textContent = '重试三维演示';
     $('#scene-loading').hidden = true;
     toast('三维演示加载失败，简历内容可正常查看');
   });
   return scenePromise;
 }
-$('#launch-scene').addEventListener('click', activateScene);
+// Auto-start the 3D scene on page load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => activateScene());
+} else {
+  activateScene();
+}
 
 $('#fullscreen-scene').addEventListener('click', async () => {
   try {
