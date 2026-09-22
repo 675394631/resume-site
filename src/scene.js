@@ -27,17 +27,17 @@ export function initScene(container, { onModeChange, initialMode = 'ai', paused:
   }
 
   renderer.setPixelRatio(1);
-  renderer.setClearColor(0x000000, 0);
+  renderer.setClearColor(0x16294a, 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.96;
+  renderer.toneMappingExposure = 0.85;
   renderer.domElement.setAttribute('aria-hidden', 'true');
   renderer.domElement.style.cssText = 'display:block;width:100%;height:100%;touch-action:pan-y;outline:none;';
   container.append(renderer.domElement);
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
-  const initialCamera = new THREE.Vector3(6.1, 4.3, 7.6);
+  const camera = new THREE.PerspectiveCamera(30, 1, 0.5, 600);
+  const initialCamera = new THREE.Vector3(22, 16, 28);
   camera.position.copy(initialCamera);
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(0, 0.1, 0);
@@ -49,8 +49,8 @@ export function initScene(container, { onModeChange, initialMode = 'ai', paused:
   // Scrolling the résumé should keep working; zoom is available with touch pinch.
   controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.ROTATE };
   controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
-  controls.minDistance = 7.5;
-  controls.maxDistance = 17;
+  controls.minDistance = 8;
+  controls.maxDistance = 80;
   controls.minPolarAngle = Math.PI * 0.14;
   controls.maxPolarAngle = Math.PI * 0.72;
   controls.update();
@@ -329,14 +329,36 @@ export function initScene(container, { onModeChange, initialMode = 'ai', paused:
     const item = makeRoot();
     const { object } = item;
 
-    // Minimal platform
-    const base = new THREE.Group();
-    base.position.y = -0.4;
-    object.add(base);
-    rounded(base, [6, 0.12, 6], [0, 0, 0], glass(COLOR.blue, 0.4), 0.3);
-    strokeRect(base, 5.8, 5.8, 0.08, COLOR.blue, 0.4);
+    // Match reference: dark blue background, ground grid
+    const gridHelper = new THREE.PolarGridHelper(38, 48, 24, 128, 0x1b3a5c, 0x1b3a5c);
+    gridHelper.position.y = -3.5;
+    object.add(gridHelper);
 
-    // Load GLB campus model
+    const groundGeo = new THREE.PlaneGeometry(160, 160);
+    const groundMat = new THREE.MeshStandardMaterial({
+      color: 0x0d1f33,
+      roughness: 0.85,
+      metalness: 0.05,
+      depthWrite: true,
+    });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -3.6;
+    ground.receiveShadow = true;
+    object.add(ground);
+
+    // Crosshair circles at center
+    for (let r of [8, 18, 32]) {
+      const ringGeo = new THREE.TorusGeometry(r, 0.12, 8, 80);
+      const ringMesh = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({
+        color: 0x1b3a5c, transparent: true, opacity: 0.25, depthWrite: false,
+      }));
+      ringMesh.rotation.x = -Math.PI / 2;
+      ringMesh.position.y = -3.48;
+      object.add(ringMesh);
+    }
+
+    // Load GLB campus model with reference-style camera positioning
     const modelGroup = new THREE.Group();
     object.add(modelGroup);
 
@@ -346,44 +368,47 @@ export function initScene(container, { onModeChange, initialMode = 'ai', paused:
     gltfLoader.setDRACOLoader(dracoLoader);
 
     let modelReady = false;
-    const loadingRing = ring(object, 1.4, 0.015, glow(COLOR.mint, 0.8));
-    loadingRing.rotation.x = Math.PI / 2;
 
     gltfLoader.load('./assets/energy-campus.glb',
       (gltf) => {
         modelReady = true;
-        object.remove(loadingRing);
-        
         const box = new THREE.Box3().setFromObject(gltf.scene);
         const size = box.getSize(new THREE.Vector3());
         const maxDim = Math.max(size.x, size.y, size.z);
-        const center = box.getCenter(new THREE.Vector3());
-
-        // Fit to ~5.5 units, align ground to platform
         const s = 5.5 / Math.max(maxDim, 0.01);
         modelGroup.scale.setScalar(s);
-        modelGroup.position.set(-center.x * s, -box.min.y * s + 0.15, -center.z * s);
+        const center = box.getCenter(new THREE.Vector3());
+        modelGroup.position.set(-center.x * s, -box.min.y * s, -center.z * s);
         modelGroup.add(gltf.scene);
 
-        console.log('Campus model loaded. Size:', size.toArray().map(v=>v.toFixed(1)), 'scale:', s.toFixed(4), 'pos:', modelGroup.position.toArray().map(v=>v.toFixed(2)));
+        // Holographic glow: make HOLO_ materials ethereal
+        gltf.scene.traverse((node) => {
+          if (!node.name || !node.material) return;
+          const mats = Array.isArray(node.material) ? node.material : [node.material];
+          mats.forEach((mat) => {
+            const n = node.name || '';
+            if (n.startsWith('HOLO_')) {
+              mat.transparent = true;
+              mat.opacity = 0.48;
+              mat.blending = THREE.AdditiveBlending;
+              mat.depthWrite = false;
+              if (mat.emissive) mat.emissiveIntensity = 1.8;
+            }
+            if (n.startsWith('HOLO_Grid') || n.startsWith('HOLO_Gnd')) {
+              mat.transparent = true;
+              mat.opacity = 0.3;
+              mat.depthWrite = false;
+            }
+          });
+        });
       },
       undefined,
-      (err) => {
-        console.error('Campus model load error:', err);
-        object.remove(loadingRing);
-      }
+      (err) => console.error('Campus model load error:', err)
     );
 
     item.update = t => {
-      object.rotation.y = Math.sin(t * 0.15) * 0.15;
-      object.position.y = Math.sin(t * 0.5) * 0.06;
-      if (!modelReady && loadingRing.parent) {
-        loadingRing.rotation.z += 0.04;
-        loadingRing.material.opacity = 0.65 + Math.sin(t * 3) * 0.1;
-      }
-      if (modelReady) {
-        modelGroup.rotation.y += 0.003;
-      }
+      object.rotation.y = Math.sin(t * 0.08) * 0.08;
+      if (modelReady) modelGroup.rotation.y += 0.002;
     };
     return item;
   }
