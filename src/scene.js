@@ -329,50 +329,47 @@ export function initScene(container, { onModeChange, initialMode = 'ai', paused:
     const item = makeRoot();
     const { object } = item;
 
-    // Clean platform
+    // Minimal platform
     const base = new THREE.Group();
-    base.position.y = -1.2;
+    base.position.y = -0.4;
     object.add(base);
-    rounded(base, [5.6, 0.18, 5.6], [0, 0, 0], glass(COLOR.blue, 0.5), 0.3);
-    strokeRect(base, 5.4, 5.4, 0.1, COLOR.blue, 0.5);
+    rounded(base, [6, 0.12, 6], [0, 0, 0], glass(COLOR.blue, 0.4), 0.3);
+    strokeRect(base, 5.8, 5.8, 0.08, COLOR.blue, 0.4);
 
-    // Corner accent dots
-    [[-2.7, -2.7], [2.7, -2.7], [-2.7, 2.7], [2.7, 2.7]].forEach(([x, z]) => {
-      sphere(base, 0.08, [x, 0.1, z], glow(COLOR.mint, 0.6), 12);
-    });
-
-    // GLB campus model — the star of the show
+    // Load GLB campus model
     const modelGroup = new THREE.Group();
     object.add(modelGroup);
-    
+
     const dracoLoader = new DRACOLoader();
     dracoLoader.setDecoderPath('./draco/');
     const gltfLoader = new GLTFLoader();
     gltfLoader.setDRACOLoader(dracoLoader);
-    
+
     let modelReady = false;
-    const loadingRing = ring(object, 1.2, 0.015, glow(COLOR.mint, 0.7));
+    const loadingRing = ring(object, 1.4, 0.015, glow(COLOR.mint, 0.8));
     loadingRing.rotation.x = Math.PI / 2;
-    loadingRing.name = 'loadingRing';
 
     gltfLoader.load('./assets/energy-campus.glb',
       (gltf) => {
         modelReady = true;
         object.remove(loadingRing);
-        modelGroup.add(gltf.scene);
+        
         const box = new THREE.Box3().setFromObject(gltf.scene);
         const size = box.getSize(new THREE.Vector3());
         const maxDim = Math.max(size.x, size.y, size.z);
-        if (maxDim > 0) {
-          const targetSize = 4.8;
-          modelGroup.scale.setScalar(targetSize / maxDim);
-          const center = box.getCenter(new THREE.Vector3());
-          modelGroup.position.set(-center.x * modelGroup.scale.x, -center.y * modelGroup.scale.y + 0.3, -center.z * modelGroup.scale.z);
-        }
+        const center = box.getCenter(new THREE.Vector3());
+
+        // Fit to ~5.5 units, align ground to platform
+        const s = 5.5 / Math.max(maxDim, 0.01);
+        modelGroup.scale.setScalar(s);
+        modelGroup.position.set(-center.x * s, -box.min.y * s + 0.15, -center.z * s);
+        modelGroup.add(gltf.scene);
+
+        console.log('Campus model loaded. Size:', size.toArray().map(v=>v.toFixed(1)), 'scale:', s.toFixed(4), 'pos:', modelGroup.position.toArray().map(v=>v.toFixed(2)));
       },
       undefined,
       (err) => {
-        console.warn('Energy campus model failed to load:', err);
+        console.error('Campus model load error:', err);
         object.remove(loadingRing);
       }
     );
