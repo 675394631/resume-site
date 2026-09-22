@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#10162a" />
+  <meta name="description" content="张俊杰的个人简历。高级前端工程师 / 前端组长，专注 AI 应用、无限画布、Blender 与 Three.js 三维可视化。" />
+  <title>张俊杰 | 高级前端工程师 · 个人简历</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+</head>
+<body>
+  <a class="skip-link" href="#experience">跳转到工作经历</a>
+  <header class="site-header">
+    <a class="brand" href="#home" aria-label="张俊杰，返回首页"><span class="brand-mark">Z<span>J</span></span><span class="brand-name">张俊杰<span>FRONTEND ENGINEER</span></span></a>
+    <nav aria-label="主导航"><a href="#experience">工作经历<span>Experience</span></a><a href="#work">项目经验<span>Projects</span></a><a href="#about">专业能力<span>Skills</span></a></nav>
+    <a class="nav-resume" href="./zhang-junjie-resume.pdf" download="张俊杰-个人简历.pdf">下载简历 <span aria-hidden="true">↗</span></a>
+  </header>
+  <main>
+    <section class="hero" id="home" aria-labelledby="hero-title">
+      <div class="hero-grid" aria-hidden="true"></div><div class="ambient ambient-one" aria-hidden="true"></div><div class="ambient ambient-two" aria-hidden="true"></div>
+      <div class="hero-wordmark" aria-hidden="true">FRONTEND<br>ENGINEER.</div>
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="live-dot"></span> 个人简历 / RESUME</p>
+        <h1 id="hero-title">张俊杰<span class="title-dot">.</span></h1>
+        <p class="hero-role">高级前端工程师 <span>/</span> 前端组长</p>
+        <p class="hero-description">专注 AI 应用开发、复杂前端交互与三维可视化。<br>具备企业级项目交付与独立产品开发经验。</p>
+        <div class="resume-facts"><span>8 年以上前端经验</span><span>本科 · 徐州工程学院</span></div>
+        <div class="hero-actions"><a href="#experience" class="button button-light">查看工作经历 <span aria-hidden="true">↓</span></a><a href="./zhang-junjie-resume.pdf" download="张俊杰-个人简历.pdf" class="text-link">下载简历 <span aria-hidden="true">↗</span></a></div>
+      </div>
+      <div class="scene-wrap" id="scene-wrap" role="tabpanel" aria-labelledby="world-ai">
+        <div id="scene" aria-label="可拖拽旋转的三维项目演示" data-scene-ready="preview"><img id="scene-poster" src="./assets/scene-ai.webp" alt="AI 应用项目三维预览" width="600" height="520" decoding="async" fetchpriority="high"></div>
+        <div class="scene-loading" id="scene-loading" hidden><span></span>正在加载三维演示</div><button id="launch-scene" class="scene-launch"><span aria-hidden="true">▷</span> 启动三维演示</button>
+        <div class="scene-annotation annotation-top"><span class="annotation-dot"></span><span id="annotation-label">AI 应用 · 独立产品开发</span></div>
+        <div class="scene-caption"><span class="caption-cross">+</span><div><p id="scene-title">AI APPLICATIONS</p><span id="scene-subtitle">AIMagic / AI 应用开发</span></div></div>
+        <div class="scene-tools"><button id="pause-scene" class="icon-button" aria-label="暂停自动动画" title="暂停自动动画"><span id="pause-symbol">Ⅱ</span></button><button id="reset-scene" class="icon-button" aria-label="重置三维视角" title="重置视角">↺</button><button id="fullscreen-scene" class="icon-button" aria-label="进入沉浸模式" title="沉浸模式">⛶</button></div>
+        <p class="drag-hint"><span aria-hidden="true">⤧</span> 点击启动后可拖拽旋转</p>
+      </div>
+      <div class="hero-bottom">
+        <a class="scroll-cue" href="#work"><span class="scroll-track"><i></i></span><span>查看简历<small>VIEW RESUME</small></span></a>
+        <div class="world-switcher" role="tablist" aria-label="切换三维世界"><button role="tab" aria-selected="true" data-world="ai" id="world-ai" aria-controls="scene-wrap" tabindex="0"><span class="world-icon">✳</span><span>AI 应用<small>AI APPLICATIONS</small></span></button><button role="tab" aria-selected="false" data-world="canvas" id="world-canvas" aria-controls="scene-wrap" tabindex="-1"><span class="world-icon">⌘</span><span>无限画布<small>CANVAS EDITOR</small></span></button><button role="tab" aria-selected="false" data-world="energy" id="world-energy" aria-controls="scene-wrap" tabindex="-1"><span class="world-icon">ϟ</span><span>数字孪生<small>CONNECTED ENERGY</small></span></button></div>
+        <span class="hero-edition">PERSONAL RESUME <span>2026</span></span>
+      </div>
+    </section>
+
+    <section id="experience" class="experience section-shell">
+      <div class="section-heading reveal"><div><p class="eyebrow">EXPERIENCE / 工作经历</p><h2>工作经历<span class="title-dot">.</span></h2></div><p class="section-note">前端研发、团队协作与项目交付。</p></div>
+      <div class="career-layout reveal"><div class="career-tabs" role="tablist" aria-label="选择工作经历" aria-orientation="vertical"><button role="tab" id="career-tab-furen" data-career="furen" aria-controls="career-panel" aria-selected="true"><span class="career-date">2025.01 — 至今</span><strong>富仁集团</strong><span class="career-role">前端组长</span><i>↗</i></button><button role="tab" id="career-tab-beta" data-career="beta" aria-controls="career-panel" aria-selected="false" tabindex="-1"><span class="career-date">2021.08 — 2024.12</span><strong>贝塔大数据</strong><span class="career-role">前端开发</span><i>↗</i></button><button role="tab" id="career-tab-sino" data-career="sino" aria-controls="career-panel" aria-selected="false" tabindex="-1"><span class="career-date">2016.06 — 2021.08</span><strong>赛诺贝斯营销数据</strong><span class="career-role">前端开发 / 前端开发组长</span><i>↗</i></button></div><div class="career-panel" role="tabpanel" id="career-panel" aria-labelledby="career-tab-furen" tabindex="0"><div class="career-panel-top"><span id="career-domain">ENERGY & INTELLIGENCE</span><span class="career-panel-mark" aria-hidden="true">ϟ</span></div><h3 id="career-heading">能源数字化与 AI 可视化</h3><p id="career-intro">负责能源数字化多端产品的前端研发协作，将 AI 问答与三维可视化带入真实业务。</p><ul id="career-points"></ul><div id="career-tags" class="career-tags"></div></div></div>
+    </section>
+    <section id="work" class="work section-shell">
+      <div class="section-heading reveal"><div><p class="eyebrow">SELECTED PROJECTS / 项目经验</p><h2>项目经验<span class="title-dot">.</span></h2></div><p class="section-note">AI 应用、可视化编辑器与能源数字化项目。</p></div>
+      <div class="projects-grid">
+        <article class="project-card project-aimagic reveal">
+          <div class="project-top"><span class="project-kind"><i></i> INDEPENDENT PRODUCT</span><span class="pill">已上线</span></div>
+          <div class="aimagic-visual"><div class="browser-chrome"><i></i><i></i><i></i><span>aimagic.wdsite.cn</span><span>↗</span></div><div class="product-screenshot"><picture><source media="(max-width: 700px)" srcset="./assets/aimagic-card.webp"><img src="./assets/aimagic-card.webp" srcset="./assets/aimagic-card.webp 640w, ./assets/aimagic-preview.webp 1440w" sizes="(max-width: 700px) 90vw, 560px" width="640" height="444" decoding="async" alt="AIMagic AI 创意工具平台实际网站界面" loading="lazy" onerror="this.closest('.product-screenshot').classList.add('image-unavailable');this.hidden=true"></picture><div class="product-image-fallback"><strong>AIMagic<span>✳</span></strong><p>让创意，更简单。</p><div>图像创作 · 照片修复 · 文档转换</div></div></div></div>
+          <div class="project-bottom"><div><p class="project-index">独立开发 / 部署 / 推广投放</p><h3>AIMagic</h3><p>独立完成开发、登录支付、部署与投放。</p></div><button data-project="aimagic" class="project-open" aria-label="查看 AIMagic 项目详情">↗</button></div><div class="project-tags"><span>Vue 3</span><span>Node.js</span><span>支付与会员</span><span>AI 产品</span></div>
+        </article>
+        <article class="project-card project-canvas reveal">
+          <div class="project-top"><span class="project-kind"><i></i> CREATIVE WORKSPACE</span><span class="pill">开源二次开发</span></div>
+          <div class="canvas-preview" id="mini-canvas" aria-label="可拖动的画布节点交互示意"><div class="canvas-grid" aria-hidden="true"></div><svg class="canvas-connections" aria-hidden="true"><path id="wire-a"/><path id="wire-b"/></svg><div class="mini-node node-prompt" data-node="prompt"><span class="mini-node-label">✳ 灵感输入</span><p>让一张图片<br>延续为一段故事</p><i class="node-socket"></i></div><div class="mini-node node-image" data-node="image"><span class="mini-node-label">◈ 参考图像</span><div class="node-landscape"><span></span><i></i></div><i class="node-socket"></i></div><div class="mini-node node-video" data-node="video"><span class="mini-node-label">▷ 连续创作</span><div class="video-mini-art"><i></i><i></i><i></i></div><p>以末帧继续生成 ↗</p></div><span class="canvas-preview-tip">试着拖动这些节点 ↗</span></div>
+          <div class="project-bottom"><div><p class="project-index">节点编排 / 模型接入 / 视频续写</p><h3>无限画布</h3><p>基于开源项目扩展模型接入与创作流程。</p></div><button data-project="canvas" class="project-open" aria-label="查看无限画布项目详情">↗</button></div><div class="project-tags"><span>React</span><span>TypeScript</span><span>Zustand</span></div>
+        </article>
+        <article class="project-card project-energy reveal">
+          <div class="project-top"><span class="project-kind"><i></i> DIGITAL TWIN</span><span class="pill">企业项目</span></div>
+          <a class="microgrid-screen" href="./assets/microgrid-dashboard-full.webp" target="_blank" rel="noopener noreferrer" aria-label="放大查看光储充微电网大屏实际界面">
+            <div class="microgrid-screen-bar"><span><i></i> 富仁高科光储充示范项目</span><span>全站概览</span></div>
+            <picture><source media="(max-width: 700px)" srcset="./assets/microgrid-dashboard-card.webp"><img src="./assets/microgrid-dashboard-card.webp" srcset="./assets/microgrid-dashboard-card.webp 640w, ./assets/microgrid-dashboard-preview.webp 1600w" sizes="(max-width: 700px) 90vw, 560px" decoding="async" alt="光储充微电网大屏：三维全站场景，以及电量统计、收益分析、实时功率与告警模块" width="1600" height="919" loading="lazy"></picture>
+            <span class="microgrid-screen-caption"><span>项目真实界面</span><span>轻触放大 ↗</span></span>
+          </a>
+          <div class="project-bottom"><div><p class="project-index">Blender 模型 / 设备交互 / 数据联动</p><h3>光储充智慧微电网</h3><p>光储充智慧微电网 · 全站三维监控。</p></div><button data-project="energy" class="project-open" aria-label="查看数字孪生项目详情">↗</button></div><div class="project-tags"><span>Blender</span><span>Three.js</span><span>G6 / ECharts</span></div>
+        </article>
+        <article class="project-card project-studio reveal">
+          <div class="project-top"><span class="project-kind"><i></i> VISUAL EDITOR</span><span class="pill">编辑器开发</span></div>
+          <div class="studio-preview"><div class="studio-stage" id="studio-stage"><span class="studio-type">MAKE<br><em>IT MOVE.</em></span><div class="studio-shape shape-a"></div><div class="studio-shape shape-b"></div><button id="studio-play" aria-label="播放短视频编辑器动效示意"><span>▶</span></button><span class="studio-caption">动画编排交互示意</span></div><div class="studio-timeline"><div class="timeline-ruler"><span>00:00</span><span>00:03</span><span>00:06</span></div><div class="timeline-track track-violet">文字 / Typography</div><div class="timeline-track track-peach">动效 / Motion</div><div class="studio-playhead"></div></div></div>
+          <div class="project-bottom"><div><p class="project-index">拖拽编辑 / 图层编排 / 动画录制</p><h3>Beta 运营与短视频工厂</h3><p>Beta 运营工厂与短视频编辑平台。</p></div><button data-project="studio" class="project-open" aria-label="查看 Beta 编辑器项目详情">↗</button></div><div class="project-tags"><span>Vue</span><span>Lottie</span><span>RecordRTC</span><span>JSON 配置化</span></div>
+        </article>
+      </div>
+    </section>
+    <section id="about" class="about section-shell"><div class="about-copy reveal"><p class="eyebrow">PROFILE / 专业能力</p><h2>技术能力与<br><span>项目交付经验</span></h2><p>我喜欢把复杂的业务与技术，整理成清晰、顺手的产品体验。既关注界面的细节，也关注模型调用、支付流程与上线后的每一步。</p><p>以 Vue 为主，保持 React / TypeScript 项目实践。用 AI 辅助研发，用代码审查、构建和实际体验验证结果。</p><div class="education"><span>EDUCATION</span><strong>徐州工程学院 · 本科</strong></div></div><div class="skill-index reveal"><div><span>BUILD INTERFACES</span><h3>Vue / React / TypeScript</h3><p>组件体系 · 多端应用 · 复杂交互 · 配置化编辑器</p></div><div><span>CONNECT INTELLIGENCE</span><h3>AI / Node.js / Express</h3><p>流式问答 · 图像与视频 · 鉴权支付 · 产品交付</p></div><div><span>CREATE DIMENSIONS</span><h3>Blender / Three.js / ECharts</h3><p>三维模型 · 数字孪生 · 设备拓扑 · 数据可视化</p></div><div><span>SHIP WITH CONFIDENCE</span><h3>Docker / Nginx / Git</h3><p>部署维护 · 健康检查 · 版本回滚 · 跨团队协作</p></div></div></section>
+    <section id="contact" class="contact section-shell"><div class="contact-orb" aria-hidden="true"></div><p class="eyebrow reveal">CONTACT / 联系方式</p><div class="contact-heading reveal"><h2>联系我<span>↗</span></h2><a href="mailto:675394631@qq.com" class="contact-cta" aria-label="发送邮件联系张俊杰">发送邮件<span>EMAIL ↗</span></a></div><div class="contact-details reveal"><button id="copy-email"><span>EMAIL</span><strong>675394631@qq.com</strong><i>复制 ↗</i></button><a href="tel:18851604408"><span>PHONE</span><strong>188-5160-4408</strong><i>拨打 ↗</i></a><a href="./zhang-junjie-resume.pdf" download="张俊杰-个人简历.pdf"><span>RESUME</span><strong>下载完整简历</strong><i>PDF ↓</i></a></div></section>
+  </main>
+  <footer class="footer"><a class="footer-logo" href="#home">ZJ<span>✳</span></a><p>张俊杰 · 高级前端工程师 / 前端组长</p><span>2026 RESUME</span><a href="#home" class="back-top">回到顶部 ↑</a></footer>
+  <dialog id="project-dialog" aria-labelledby="dialog-title"><div class="dialog-top"><span>PROJECT NOTES / 项目详情</span><button id="close-dialog" aria-label="关闭项目详情">✕</button></div><div class="dialog-content"><p id="dialog-category" class="eyebrow"></p><h2 id="dialog-title"></h2><p id="dialog-description"></p><div id="dialog-stack" class="project-tags"></div><figure id="dialog-preview" class="dialog-preview" hidden><a id="dialog-preview-link" target="_blank" rel="noopener noreferrer"><img id="dialog-preview-image" alt=""><span>放大查看 ↗</span></a><figcaption id="dialog-preview-caption"></figcaption></figure><div class="dialog-divider"></div><h3>我负责的部分</h3><ul id="dialog-highlights"></ul><div class="dialog-actions"><a id="dialog-website" class="button button-light" target="_blank" rel="noopener noreferrer">访问在线产品 ↗</a><button id="dialog-back" class="button button-outline">返回作品</button></div></div></dialog>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
