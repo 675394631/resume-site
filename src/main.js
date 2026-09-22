@@ -98,12 +98,7 @@ function activateScene() {
   });
   return scenePromise;
 }
-// Auto-start the 3D scene on page load
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => activateScene());
-} else {
-  activateScene();
-}
+// Scene only loaded when AIMagic tab is activated (currently hidden)
 
 $('#fullscreen-scene').addEventListener('click', async () => {
   try {
