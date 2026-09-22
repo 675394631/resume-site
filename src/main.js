@@ -44,13 +44,12 @@ function setupKeyboardTabs(selector) {
 setupKeyboardTabs('[data-career]');
 setupKeyboardTabs('[data-world]');
 
-let scene, scenePromise, currentWorld = 'energy';
+let currentWorld = 'energy';
 let paused = reducedMotion.matches;
 const worldCopy = {
-  ai: ['AIMAGIC', 'AI 创意工具 · 独立全栈产品', 'AIMagic · AI 创意工具平台'],
   energy: ['3D MODEL SHOWCASE', 'Blender / Three.js / GLB', '模型展示 · 智慧能源园区'],
 };
-const posters = { ai: './assets/scene-ai.webp', energy: './assets/scene-energy.webp' };
+const posters = { energy: './assets/scene-energy.webp' };
 function selectWorld(mode) {
   currentWorld = mode;
   const copy = worldCopy[mode];
