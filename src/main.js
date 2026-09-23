@@ -1,4 +1,9 @@
 import './style.css';
+import { projects } from './content.js';
+
+const $ = selector => document.querySelector(selector);
+const $$ = selector => [...document.querySelectorAll(selector)];
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 // ── Hero background: perspective grid + floating shapes + gradient orbs + mouse glow ──
 (function() {
   const canvas = document.getElementById('hero-particles');
@@ -7,11 +12,6 @@ import './style.css';
   let w, h, cx, cy;
   let mouseX = 0.5, mouseY = 0.5, targetMX = 0.5, targetMY = 0.5;
   let time = 0;
-  // Mouse trail particles
-  const trail = [];
-  const MAX_TRAIL = 30;
-  let mouseVX = 0, mouseVY = 0, lastMX = 0.5, lastMY = 0.5;
-  let clickRipples = [];
 
   function resize() {
     const hero = canvas.parentElement;
@@ -28,15 +28,6 @@ import './style.css';
     const rect = canvas.parentElement.getBoundingClientRect();
     targetMX = (e.clientX - rect.left) / rect.width;
     targetMY = (e.clientY - rect.top) / rect.height;
-  });
-  canvas.parentElement.addEventListener('click', e => {
-    const rect = canvas.parentElement.getBoundingClientRect();
-    clickRipples.push({
-      x: (e.clientX - rect.left) / rect.width,
-      y: (e.clientY - rect.top) / rect.height,
-      life: 1,
-      r: 3
-    });
   });
   canvas.parentElement.addEventListener('mouseleave', () => { targetMX = 0.5; targetMY = 0.5; });
 
@@ -105,25 +96,9 @@ import './style.css';
   }
 
   function draw() {
-    mouseVX = (targetMX - mouseX) * 0.08;
-    mouseVY = (targetMY - mouseY) * 0.08;
     mouseX += (targetMX - mouseX) * 0.05;
     mouseY += (targetMY - mouseY) * 0.05;
     time += 1;
-
-    // Update mouse trail
-    const speed = Math.hypot(mouseVX, mouseVY);
-    if (speed > 0.0005) {
-      trail.push({ x: mouseX, y: mouseY, life: 1, r: 1.5 + speed * 400 });
-      if (trail.length > MAX_TRAIL) trail.shift();
-    }
-    trail.forEach(t => { t.life -= 0.03; t.r += 0.15; });
-    for (let i = trail.length - 1; i >= 0; i--) {
-      if (trail[i].life <= 0) trail.splice(i, 1);
-    }
-
-    // Update click ripples
-    clickRipples = clickRipples.filter(r => { r.life -= 0.015; r.r += 1.5; return r.life > 0; });
     const W = w / devicePixelRatio;
     const H = h / devicePixelRatio;
     ctx.clearRect(0, 0, W, H);
@@ -184,25 +159,9 @@ import './style.css';
     ctx.stroke();
 
     // ── 3. Floating shapes ──
-    const magneticRange = 180;
-    const magneticForce = 0.04;
     shapes.forEach(s => {
-            let rawSX = ((s.x + Math.sin(time * s.speed + s.phase) * s.amplitude * 0.15) % 1 + 1) % 1;
-      let rawSY = ((s.y + Math.cos(time * s.speed * 1.4 + s.phase) * s.amplitude * 0.15) % 1 + 1) % 1;
-      // Magnetic attraction to cursor
-      const dx = mouseX - rawSX;
-      const dy = mouseY - rawSY;
-      const dist = Math.hypot(dx, dy);
-      let sx = rawSX + (mouseX - 0.5) * 0.3;
-      let sy = rawSY + (mouseY - 0.5) * 0.3;
-      if (dist < magneticRange / W) {
-        const pull = (1 - dist * W / magneticRange) * magneticForce;
-        sx += dx * pull * 1.5;
-        sy += dy * pull * 1.5;
-      }
-      sx = ((sx % 1) + 1) % 1;
-      sy = ((sy % 1) + 1) % 1;
-
+      const sx = ((s.x + Math.sin(time * s.speed + s.phase) * s.amplitude * 0.15 + (mouseX - 0.5) * 0.3) % 1 + 1) % 1;
+      const sy = ((s.y + Math.cos(time * s.speed * 1.4 + s.phase) * s.amplitude * 0.15 + (mouseY - 0.5) * 0.3) % 1 + 1) % 1;
       const px = sx * W;
       const py = sy * H;
       const glow = ctx.createRadialGradient(px, py, 0, px, py, s.r * 3);
@@ -214,31 +173,6 @@ import './style.css';
       ctx.strokeStyle = `hsla(${s.hue},70%,65%,${s.opacity * 0.8})`;
       ctx.lineWidth = 0.8;
       drawShape(ctx, px, py, s.r, s.type);
-      ctx.stroke();
-    });
-
-    // ── 3.5. Mouse trail ──
-    trail.forEach(t => {
-      const tx = t.x * W;
-      const ty = t.y * H;
-      const alpha = t.life * 0.5;
-      ctx.beginPath();
-      ctx.arc(tx, ty, t.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(183,160,251,${alpha * 0.5})`;
-      ctx.fill();
-      const trailGlow = ctx.createRadialGradient(tx, ty, 0, tx, ty, t.r * 2.5);
-      trailGlow.addColorStop(0, `rgba(183,160,251,${alpha * 0.2})`);
-      trailGlow.addColorStop(1, 'transparent');
-      ctx.fillStyle = trailGlow;
-      ctx.fillRect(tx - t.r * 3, ty - t.r * 3, t.r * 6, t.r * 6);
-    });
-
-    // Click ripples
-    clickRipples.forEach(r => {
-      ctx.beginPath();
-      ctx.arc(r.x * W, r.y * H, r.r, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(183,160,251,${r.life * 0.4})`;
-      ctx.lineWidth = 1.5;
       ctx.stroke();
     });
 
@@ -260,22 +194,8 @@ import './style.css';
 
     // ── 6. Floating particles near cursor ──
     const nearCursor = shapes.filter(s => {
-            let rawSX = ((s.x + Math.sin(time * s.speed + s.phase) * s.amplitude * 0.15) % 1 + 1) % 1;
-      let rawSY = ((s.y + Math.cos(time * s.speed * 1.4 + s.phase) * s.amplitude * 0.15) % 1 + 1) % 1;
-      // Magnetic attraction to cursor
-      const dx = mouseX - rawSX;
-      const dy = mouseY - rawSY;
-      const dist = Math.hypot(dx, dy);
-      let sx = rawSX + (mouseX - 0.5) * 0.3;
-      let sy = rawSY + (mouseY - 0.5) * 0.3;
-      if (dist < magneticRange / W) {
-        const pull = (1 - dist * W / magneticRange) * magneticForce;
-        sx += dx * pull * 1.5;
-        sy += dy * pull * 1.5;
-      }
-      sx = ((sx % 1) + 1) % 1;
-      sy = ((sy % 1) + 1) % 1;
-
+      const sx = ((s.x + Math.sin(time * s.speed + s.phase) * s.amplitude * 0.15 + (mouseX - 0.5) * 0.3) % 1 + 1) % 1;
+      const sy = ((s.y + Math.cos(time * s.speed * 1.4 + s.phase) * s.amplitude * 0.15 + (mouseY - 0.5) * 0.3) % 1 + 1) % 1;
       return Math.hypot((sx - mouseX) * W, (sy - mouseY) * H) < 200;
     });
 
@@ -284,6 +204,44 @@ import './style.css';
   draw();
 })();
 
+const careers = {
+  furen: { domain: 'ENERGY & INTELLIGENCE', mark: 'ϟ', heading: '能源数字化与 AI 可视化', intro: '负责能源数字化多端产品的前端研发协作，将 AI 问答与三维可视化带入真实业务。', points: ['负责 EMS 管理端、能源大屏、H5 / App 与低代码平台，承担任务拆分、接口协同与交付推进。', '建设 AI 流式问答、设备上下文、语音输入和告警联动，完成储能模型、站点拓扑与数据图表。', '推进中英德日多语言及德国项目适配，处理时区、电价、报表与地图差异，沉淀公共能力。'], tags: ['前端技术负责', 'AI 能源问答', '三维可视化', '多端与多语言'] },
+  beta: { domain: 'PRODUCTS & CREATIVE TOOLS', mark: '✳', heading: '金融 SaaS 与智慧社区', intro: '连接金融数字营销与智慧社区业务，构建可复用的多端产品和可视化内容生产工具。', points: ['开发理财师保险计划书、数字营销与投后服务等 PC / H5 / SaaS 产品，适配 App、微信与企微。', '从 0 到 1 开发部署智慧社区后台、大屏和微信小程序，交付郑州、丽水等地智慧展馆及预约审核系统。', '开发 H5 运营工厂、短视频编辑平台和 ChatGPT 流式原型，完成配置化表单、SSR 改造与多端兼容。'], tags: ['金融 SaaS', '智慧社区', '可视化编辑器', '多端交付'] },
+  sino: { domain: 'FOUNDATIONS & LEADERSHIP', mark: '⌘', heading: '营销 SaaS 与前端团队协作', intro: '积累营销 SaaS、数字金融与移动端研发经验，并在营销 SaaS 项目中承担前端组长职责。', points: ['实现线索评级、模型圈选、智能推荐、A/B Test 与埋点分析，交付哈根达斯、雅培、一汽马自达等客户项目。', '负责技术选型、工作量评估、任务分配及研发协作，推进业务需求落地和版本交付。', '参与数字金融 App、官网及 PC / 移动端开发，覆盖行情、支付、预警、K 线与收益分析。'], tags: ['营销分析 SaaS', '前端协作', '业务建模', '多端适配'] },
+};
+
+function addTextNodes(container, tag, values) {
+  container.replaceChildren(...values.map(text => { const node = document.createElement(tag); node.textContent = text; return node; }));
+}
+function selectCareer(id) {
+  const career = careers[id];
+  if (!career) return;
+  $$('[data-career]').forEach(button => { const active = button.dataset.career === id; button.setAttribute('aria-selected', String(active)); button.tabIndex = active ? 0 : -1; });
+  $('#career-panel').setAttribute('aria-labelledby', `career-tab-${id}`);
+  $('#career-panel').dataset.activeCareer = id;
+  $('#career-domain').textContent = career.domain;
+  $('.career-panel-mark').textContent = career.mark;
+  $('#career-heading').textContent = career.heading;
+  $('#career-intro').textContent = career.intro;
+  addTextNodes($('#career-points'), 'li', career.points);
+  addTextNodes($('#career-tags'), 'span', career.tags);
+  if (!reducedMotion.matches) $('#career-panel').animate([{ opacity: .3, transform: 'translateY(7px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 280, easing: 'ease-out' });
+}
+$$('[data-career]').forEach(button => button.addEventListener('click', () => selectCareer(button.dataset.career)));
+selectCareer('furen');
+
+function setupKeyboardTabs(selector) {
+  const tabs = $$(selector);
+  tabs.forEach((tab, index) => tab.addEventListener('keydown', event => {
+    let next;
+    if (['ArrowRight', 'ArrowDown'].includes(event.key)) next = (index + 1) % tabs.length;
+    if (['ArrowLeft', 'ArrowUp'].includes(event.key)) next = (index - 1 + tabs.length) % tabs.length;
+    if (event.key === 'Home') next = 0;
+    if (event.key === 'End') next = tabs.length - 1;
+    if (next !== undefined) { event.preventDefault(); tabs[next].focus(); tabs[next].click(); }
+  }));
+}
+setupKeyboardTabs('[data-career]');
 // Scene handled by iframe in model section below
 
 const dialog = $('#project-dialog');
@@ -435,8 +393,6 @@ window.addEventListener('scroll', () => { if (!scrollPending) { scrollPending = 
 updateNav();
 
 $$('.reveal').forEach(el => el.classList.add('visible'));
-
-
 
 // The mobile project viewer behaves like a native sheet: drag its handle to dismiss.
 const sheetHeader = $('.dialog-top');
