@@ -7,6 +7,11 @@ import './style.css';
   let w, h, cx, cy;
   let mouseX = 0.5, mouseY = 0.5, targetMX = 0.5, targetMY = 0.5;
   let time = 0;
+  // Mouse trail particles
+  const trail = [];
+  const MAX_TRAIL = 30;
+  let mouseVX = 0, mouseVY = 0, lastMX = 0.5, lastMY = 0.5;
+  let clickRipples = [];
 
   function resize() {
     const hero = canvas.parentElement;
@@ -23,6 +28,15 @@ import './style.css';
     const rect = canvas.parentElement.getBoundingClientRect();
     targetMX = (e.clientX - rect.left) / rect.width;
     targetMY = (e.clientY - rect.top) / rect.height;
+  });
+  canvas.parentElement.addEventListener('click', e => {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    clickRipples.push({
+      x: (e.clientX - rect.left) / rect.width,
+      y: (e.clientY - rect.top) / rect.height,
+      life: 1,
+      r: 3
+    });
   });
   canvas.parentElement.addEventListener('mouseleave', () => { targetMX = 0.5; targetMY = 0.5; });
 
@@ -91,9 +105,25 @@ import './style.css';
   }
 
   function draw() {
+    mouseVX = (targetMX - mouseX) * 0.08;
+    mouseVY = (targetMY - mouseY) * 0.08;
     mouseX += (targetMX - mouseX) * 0.05;
     mouseY += (targetMY - mouseY) * 0.05;
     time += 1;
+
+    // Update mouse trail
+    const speed = Math.hypot(mouseVX, mouseVY);
+    if (speed > 0.0005) {
+      trail.push({ x: mouseX, y: mouseY, life: 1, r: 1.5 + speed * 400 });
+      if (trail.length > MAX_TRAIL) trail.shift();
+    }
+    trail.forEach(t => { t.life -= 0.03; t.r += 0.15; });
+    for (let i = trail.length - 1; i >= 0; i--) {
+      if (trail[i].life <= 0) trail.splice(i, 1);
+    }
+
+    // Update click ripples
+    clickRipples = clickRipples.filter(r => { r.life -= 0.015; r.r += 1.5; return r.life > 0; });
     const W = w / devicePixelRatio;
     const H = h / devicePixelRatio;
     ctx.clearRect(0, 0, W, H);
@@ -154,9 +184,25 @@ import './style.css';
     ctx.stroke();
 
     // ── 3. Floating shapes ──
+    const magneticRange = 180;
+    const magneticForce = 0.04;
     shapes.forEach(s => {
-      const sx = ((s.x + Math.sin(time * s.speed + s.phase) * s.amplitude * 0.15 + (mouseX - 0.5) * 0.3) % 1 + 1) % 1;
-      const sy = ((s.y + Math.cos(time * s.speed * 1.4 + s.phase) * s.amplitude * 0.15 + (mouseY - 0.5) * 0.3) % 1 + 1) % 1;
+            let rawSX = ((s.x + Math.sin(time * s.speed + s.phase) * s.amplitude * 0.15) % 1 + 1) % 1;
+      let rawSY = ((s.y + Math.cos(time * s.speed * 1.4 + s.phase) * s.amplitude * 0.15) % 1 + 1) % 1;
+      // Magnetic attraction to cursor
+      const dx = mouseX - rawSX;
+      const dy = mouseY - rawSY;
+      const dist = Math.hypot(dx, dy);
+      let sx = rawSX + (mouseX - 0.5) * 0.3;
+      let sy = rawSY + (mouseY - 0.5) * 0.3;
+      if (dist < magneticRange / W) {
+        const pull = (1 - dist * W / magneticRange) * magneticForce;
+        sx += dx * pull * 1.5;
+        sy += dy * pull * 1.5;
+      }
+      sx = ((sx % 1) + 1) % 1;
+      sy = ((sy % 1) + 1) % 1;
+
       const px = sx * W;
       const py = sy * H;
       const glow = ctx.createRadialGradient(px, py, 0, px, py, s.r * 3);
@@ -168,6 +214,31 @@ import './style.css';
       ctx.strokeStyle = `hsla(${s.hue},70%,65%,${s.opacity * 0.8})`;
       ctx.lineWidth = 0.8;
       drawShape(ctx, px, py, s.r, s.type);
+      ctx.stroke();
+    });
+
+    // ── 3.5. Mouse trail ──
+    trail.forEach(t => {
+      const tx = t.x * W;
+      const ty = t.y * H;
+      const alpha = t.life * 0.5;
+      ctx.beginPath();
+      ctx.arc(tx, ty, t.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(183,160,251,${alpha * 0.5})`;
+      ctx.fill();
+      const trailGlow = ctx.createRadialGradient(tx, ty, 0, tx, ty, t.r * 2.5);
+      trailGlow.addColorStop(0, `rgba(183,160,251,${alpha * 0.2})`);
+      trailGlow.addColorStop(1, 'transparent');
+      ctx.fillStyle = trailGlow;
+      ctx.fillRect(tx - t.r * 3, ty - t.r * 3, t.r * 6, t.r * 6);
+    });
+
+    // Click ripples
+    clickRipples.forEach(r => {
+      ctx.beginPath();
+      ctx.arc(r.x * W, r.y * H, r.r, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(183,160,251,${r.life * 0.4})`;
+      ctx.lineWidth = 1.5;
       ctx.stroke();
     });
 
@@ -189,8 +260,22 @@ import './style.css';
 
     // ── 6. Floating particles near cursor ──
     const nearCursor = shapes.filter(s => {
-      const sx = ((s.x + Math.sin(time * s.speed + s.phase) * s.amplitude * 0.15 + (mouseX - 0.5) * 0.3) % 1 + 1) % 1;
-      const sy = ((s.y + Math.cos(time * s.speed * 1.4 + s.phase) * s.amplitude * 0.15 + (mouseY - 0.5) * 0.3) % 1 + 1) % 1;
+            let rawSX = ((s.x + Math.sin(time * s.speed + s.phase) * s.amplitude * 0.15) % 1 + 1) % 1;
+      let rawSY = ((s.y + Math.cos(time * s.speed * 1.4 + s.phase) * s.amplitude * 0.15) % 1 + 1) % 1;
+      // Magnetic attraction to cursor
+      const dx = mouseX - rawSX;
+      const dy = mouseY - rawSY;
+      const dist = Math.hypot(dx, dy);
+      let sx = rawSX + (mouseX - 0.5) * 0.3;
+      let sy = rawSY + (mouseY - 0.5) * 0.3;
+      if (dist < magneticRange / W) {
+        const pull = (1 - dist * W / magneticRange) * magneticForce;
+        sx += dx * pull * 1.5;
+        sy += dy * pull * 1.5;
+      }
+      sx = ((sx % 1) + 1) % 1;
+      sy = ((sy % 1) + 1) % 1;
+
       return Math.hypot((sx - mouseX) * W, (sy - mouseY) * H) < 200;
     });
 
