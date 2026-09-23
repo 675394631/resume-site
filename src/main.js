@@ -179,9 +179,10 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
     // ── 4. Mouse glow ──
     const mgx = mouseX * W;
     const mgy = mouseY * H;
-    const mouseGlow = ctx.createRadialGradient(mgx, mgy, 0, mgx, mgy, 280);
-    mouseGlow.addColorStop(0, 'rgba(183,160,251,0.08)');
-    mouseGlow.addColorStop(0.5, 'rgba(132,153,255,0.03)');
+    const mouseGlow = ctx.createRadialGradient(mgx, mgy, 0, mgx, mgy, 350);
+    mouseGlow.addColorStop(0, 'rgba(183,160,251,0.12)');
+    mouseGlow.addColorStop(0.3, 'rgba(150,130,240,0.06)');
+    mouseGlow.addColorStop(0.6, 'rgba(100,120,220,0.02)');
     mouseGlow.addColorStop(1, 'transparent');
     ctx.fillStyle = mouseGlow;
     ctx.fillRect(0, 0, W, H);
