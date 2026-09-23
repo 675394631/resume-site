@@ -4,14 +4,19 @@ import { projects } from './content.js';
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-// ── Hero background: perspective grid + floating shapes + gradient orbs + mouse glow ──
+// ── Hero background: enhanced grid + shapes + cursor effects ──
 (function() {
   const canvas = document.getElementById('hero-particles');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   let w, h, cx, cy;
   let mouseX = 0.5, mouseY = 0.5, targetMX = 0.5, targetMY = 0.5;
+  let mouseVX = 0, mouseVY = 0;
   let time = 0;
+  const trail = [];
+  const MAX_TRAIL = 60;
+  let clickRipples = [];
+  let cursorRing = { x: 0.5, y: 0.5, r: 8, targetR: 8 };
 
   function resize() {
     const hero = canvas.parentElement;
@@ -30,24 +35,29 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
     targetMY = (e.clientY - rect.top) / rect.height;
   });
   canvas.parentElement.addEventListener('mouseleave', () => { targetMX = 0.5; targetMY = 0.5; });
+  canvas.parentElement.addEventListener('click', e => {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    clickRipples.push({
+      x: (e.clientX - rect.left) / rect.width,
+      y: (e.clientY - rect.top) / rect.height,
+      life: 1, r: 3
+    });
+  });
 
-  // ── Floating shapes ──
   const shapes = [];
   for (let i = 0; i < 12; i++) {
     shapes.push({
-      x: Math.random(),
-      y: Math.random(),
+      x: Math.random(), y: Math.random(),
       r: 4 + Math.random() * 16,
       speed: 0.0003 + Math.random() * 0.0008,
       amplitude: 0.3 + Math.random() * 0.5,
       phase: Math.random() * Math.PI * 2,
       opacity: 0.08 + Math.random() * 0.18,
       type: ['circle','diamond','hex','cross'][Math.floor(Math.random()*4)],
-      hue: [210, 240, 270, 290, 320][Math.floor(Math.random()*5)]
+      hue: [210,240,270,290,320][Math.floor(Math.random()*5)]
     });
   }
 
-  // ── Gradient orbs ──
   const orbs = [
     { x: 0.75, y: 0.35, r: 0.35, hue: 240, speed: 0.0003 },
     { x: 0.25, y: 0.55, r: 0.28, hue: 280, speed: 0.0004 },
@@ -55,194 +65,153 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
     { x: 0.45, y: 0.2, r: 0.2, hue: 320, speed: 0.00035 },
   ];
 
-  function drawShape(ctx, x, y, r, type) {
-    ctx.beginPath();
+  function drawShape(c, x, y, r, type) {
+    c.beginPath();
     switch(type) {
-      case 'circle':
-        ctx.arc(x, y, r, 0, Math.PI * 2);
-        break;
-      case 'diamond':
-        ctx.moveTo(x, y - r);
-        ctx.lineTo(x + r * 0.7, y);
-        ctx.lineTo(x, y + r);
-        ctx.lineTo(x - r * 0.7, y);
-        ctx.closePath();
-        break;
-      case 'hex':
-        for (let i = 0; i < 6; i++) {
-          const a = Math.PI / 180 * (60 * i - 30);
-          const px = x + r * Math.cos(a);
-          const py = y + r * Math.sin(a);
-          i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-        }
-        ctx.closePath();
-        break;
-      case 'cross':
-        ctx.moveTo(x - r * 0.4, y - r);
-        ctx.lineTo(x + r * 0.4, y - r);
-        ctx.lineTo(x + r * 0.4, y - r * 0.4);
-        ctx.lineTo(x + r, y - r * 0.4);
-        ctx.lineTo(x + r, y + r * 0.4);
-        ctx.lineTo(x + r * 0.4, y + r * 0.4);
-        ctx.lineTo(x + r * 0.4, y + r);
-        ctx.lineTo(x - r * 0.4, y + r);
-        ctx.lineTo(x - r * 0.4, y + r * 0.4);
-        ctx.lineTo(x - r, y + r * 0.4);
-        ctx.lineTo(x - r, y - r * 0.4);
-        ctx.lineTo(x - r * 0.4, y - r * 0.4);
-        ctx.closePath();
-        break;
+      case 'circle': c.arc(x, y, r, 0, Math.PI * 2); break;
+      case 'diamond': c.moveTo(x, y - r); c.lineTo(x + r * 0.7, y); c.lineTo(x, y + r); c.lineTo(x - r * 0.7, y); c.closePath(); break;
+      case 'hex': for (let i = 0; i < 6; i++) { const a = Math.PI / 180 * (60 * i - 30); i === 0 ? c.moveTo(x + r * Math.cos(a), y + r * Math.sin(a)) : c.lineTo(x + r * Math.cos(a), y + r * Math.sin(a)); } c.closePath(); break;
+      case 'cross': c.moveTo(x - r * 0.4, y - r); c.lineTo(x + r * 0.4, y - r); c.lineTo(x + r * 0.4, y - r * 0.4); c.lineTo(x + r, y - r * 0.4); c.lineTo(x + r, y + r * 0.4); c.lineTo(x + r * 0.4, y + r * 0.4); c.lineTo(x + r * 0.4, y + r); c.lineTo(x - r * 0.4, y + r); c.lineTo(x - r * 0.4, y + r * 0.4); c.lineTo(x - r, y + r * 0.4); c.lineTo(x - r, y - r * 0.4); c.lineTo(x - r * 0.4, y - r * 0.4); c.closePath(); break;
     }
   }
 
   function draw() {
+    mouseVX = (targetMX - mouseX) * 0.08;
+    mouseVY = (targetMY - mouseY) * 0.08;
     mouseX += (targetMX - mouseX) * 0.05;
     mouseY += (targetMY - mouseY) * 0.05;
     time += 1;
+
     const W = w / devicePixelRatio;
     const H = h / devicePixelRatio;
     ctx.clearRect(0, 0, W, H);
 
-    // ── 1. Gradient orbs (blurred) ──
+    // ── Cursor ring ──
+    cursorRing.x += (mouseX - cursorRing.x) * 0.12;
+    cursorRing.y += (mouseY - cursorRing.y) * 0.12;
+    const moveSpeed = Math.hypot(mouseVX, mouseVY);
+    cursorRing.targetR = moveSpeed > 0.002 ? 18 : 9;
+    cursorRing.r += (cursorRing.targetR - cursorRing.r) * 0.08;
+
+    // ── Trail ──
+    if (moveSpeed > 0.0003) {
+      const count = Math.min(3, Math.floor(moveSpeed * 1000));
+      for (let c = 0; c < count; c++) {
+        trail.push({ x: mouseX + (Math.random() - 0.5) * 0.015, y: mouseY + (Math.random() - 0.5) * 0.015, life: 1, r: 2 + Math.random() * 3 });
+      }
+      while (trail.length > MAX_TRAIL) trail.shift();
+    }
+    trail.forEach(t => { t.life -= 0.022; t.r += 0.25; });
+    for (let i = trail.length - 1; i >= 0; i--) { if (trail[i].life <= 0) trail.splice(i, 1); }
+
+    // Ripples
+    clickRipples = clickRipples.filter(r => { r.life -= 0.012; r.r += 1.8; return r.life > 0; });
+
+    // ── 1. Orbs ──
     orbs.forEach(orb => {
       const ox = (orb.x + Math.sin(time * orb.speed) * 0.08 + (mouseX - 0.5) * 0.15) * W;
       const oy = (orb.y + Math.cos(time * orb.speed * 1.3) * 0.08 + (mouseY - 0.5) * 0.15) * H;
-      const gradient = ctx.createRadialGradient(ox, oy, 0, ox, oy, orb.r * W * 0.9);
-      gradient.addColorStop(0, `hsla(${orb.hue},70%,65%,0.12)`);
-      gradient.addColorStop(0.5, `hsla(${orb.hue},60%,55%,0.04)`);
-      gradient.addColorStop(1, 'transparent');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, W, H);
+      const g = ctx.createRadialGradient(ox, oy, 0, ox, oy, orb.r * W * 0.9);
+      g.addColorStop(0, `hsla(${orb.hue},70%,65%,0.12)`);
+      g.addColorStop(0.5, `hsla(${orb.hue},60%,55%,0.04)`);
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
     });
 
-    // ── 2. Perspective grid floor ──
-    const gridCenterX = W * (0.5 + (mouseX - 0.5) * 0.3);
-    const gridCenterY = H * 0.85;
-    const horizonY = H * 0.45;
-    ctx.strokeStyle = 'rgba(132,153,255,0.06)';
-    ctx.lineWidth = 0.5;
-
-    // Horizontal lines
+    // ── 2. Grid ──
+    const gcx = W * (0.5 + (mouseX - 0.5) * 0.3);
+    const gcy = H * 0.85;
+    const horizon = H * 0.45;
     for (let i = 0; i < 20; i++) {
-      const t = i / 20;
-      const perspective = Math.pow(t, 2.5);
-      const y = horizonY + (gridCenterY - horizonY) * perspective;
-      const spread = perspective * W * 0.9;
-      const x1 = gridCenterX - spread;
-      const x2 = gridCenterX + spread;
-      const alpha = (1 - perspective) * 0.35;
-      ctx.strokeStyle = `rgba(132,153,255,${alpha})`;
-      ctx.beginPath();
-      ctx.moveTo(x1, y);
-      ctx.lineTo(x2, y);
-      ctx.stroke();
+      const t = i / 20, p = Math.pow(t, 2.5);
+      const y = horizon + (gcy - horizon) * p;
+      const spread = p * W * 0.9;
+      ctx.strokeStyle = `rgba(132,153,255,${(1 - p) * 0.35})`;
+      ctx.lineWidth = 0.5;
+      ctx.beginPath(); ctx.moveTo(gcx - spread, y); ctx.lineTo(gcx + spread, y); ctx.stroke();
     }
-
-    // Vertical lines
     for (let i = -15; i <= 15; i++) {
       const t = i / 15;
-      const x = gridCenterX + t * W * 1.2;
-      const alpha = Math.abs(t) < 0.15 ? 0.2 : 0.04;
-      ctx.strokeStyle = `rgba(132,153,255,${alpha})`;
-      ctx.beginPath();
-      ctx.moveTo(x, horizonY);
-      ctx.lineTo(gridCenterX + t * W * 0.6, H);
-      ctx.stroke();
+      ctx.strokeStyle = `rgba(132,153,255,${Math.abs(t) < 0.15 ? 0.2 : 0.04})`;
+      ctx.lineWidth = 0.5;
+      ctx.beginPath(); ctx.moveTo(gcx + t * W * 1.2, horizon); ctx.lineTo(gcx + t * W * 0.6, H); ctx.stroke();
     }
+    ctx.strokeStyle = 'rgba(183,160,251,0.15)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(gcx, horizon); ctx.lineTo(gcx, H); ctx.stroke();
 
-    // Bright center line
-    ctx.strokeStyle = 'rgba(183,160,251,0.15)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(gridCenterX, horizonY);
-    ctx.lineTo(gridCenterX, H);
-    ctx.stroke();
-
-    // ── 3. Floating shapes ──
+    // ── 3. Shapes ──
+    const magRange = 0.15, magForce = 0.06;
     shapes.forEach(s => {
-      const sx = ((s.x + Math.sin(time * s.speed + s.phase) * s.amplitude * 0.15 + (mouseX - 0.5) * 0.3) % 1 + 1) % 1;
-      const sy = ((s.y + Math.cos(time * s.speed * 1.4 + s.phase) * s.amplitude * 0.15 + (mouseY - 0.5) * 0.3) % 1 + 1) % 1;
-      const px = sx * W;
-      const py = sy * H;
-      const glow = ctx.createRadialGradient(px, py, 0, px, py, s.r * 3);
-      glow.addColorStop(0, `hsla(${s.hue},80%,70%,${s.opacity})`);
-      glow.addColorStop(1, 'transparent');
-      ctx.fillStyle = glow;
-      ctx.fillRect(px - s.r * 3, py - s.r * 3, s.r * 6, s.r * 6);
-
-      ctx.strokeStyle = `hsla(${s.hue},70%,65%,${s.opacity * 0.8})`;
-      ctx.lineWidth = 0.8;
-      drawShape(ctx, px, py, s.r, s.type);
-      ctx.stroke();
+      let rawSX = ((s.x + Math.sin(time * s.speed + s.phase) * s.amplitude * 0.15) % 1 + 1) % 1;
+      let rawSY = ((s.y + Math.cos(time * s.speed * 1.4 + s.phase) * s.amplitude * 0.15) % 1 + 1) % 1;
+      const dx = mouseX - rawSX, dy = mouseY - rawSY;
+      const dist = Math.hypot(dx, dy);
+      let sx = rawSX + (mouseX - 0.5) * 0.3;
+      let sy = rawSY + (mouseY - 0.5) * 0.3;
+      if (dist < magRange) {
+        const pull = (1 - dist / magRange) * magForce;
+        sx += dx * pull * 2;
+        sy += dy * pull * 2;
+      }
+      sx = ((sx % 1) + 1) % 1; sy = ((sy % 1) + 1) % 1;
+      const px = sx * W, py = sy * H;
+      const gl = ctx.createRadialGradient(px, py, 0, px, py, s.r * 3);
+      gl.addColorStop(0, `hsla(${s.hue},80%,70%,${s.opacity})`);
+      gl.addColorStop(1, 'transparent');
+      ctx.fillStyle = gl; ctx.fillRect(px - s.r * 3, py - s.r * 3, s.r * 6, s.r * 6);
+      ctx.strokeStyle = `hsla(${s.hue},70%,65%,${s.opacity * 0.8})`; ctx.lineWidth = 0.8;
+      drawShape(ctx, px, py, s.r, s.type); ctx.stroke();
     });
 
-    // ── 4. Mouse glow ──
-    const mgx = mouseX * W;
-    const mgy = mouseY * H;
-    const mouseGlow = ctx.createRadialGradient(mgx, mgy, 0, mgx, mgy, 350);
-    mouseGlow.addColorStop(0, 'rgba(183,160,251,0.12)');
-    mouseGlow.addColorStop(0.3, 'rgba(150,130,240,0.06)');
-    mouseGlow.addColorStop(0.6, 'rgba(100,120,220,0.02)');
-    mouseGlow.addColorStop(1, 'transparent');
-    ctx.fillStyle = mouseGlow;
-    ctx.fillRect(0, 0, W, H);
+    // ── 4. Trail glow ──
+    trail.forEach(t => {
+      const tx = t.x * W, ty = t.y * H;
+      const a = t.life;
+      const g = ctx.createRadialGradient(tx, ty, 0, tx, ty, t.r * 4);
+      g.addColorStop(0, `rgba(200,170,255,${a * 0.7})`);
+      g.addColorStop(0.3, `rgba(160,130,240,${a * 0.4})`);
+      g.addColorStop(0.6, `rgba(132,153,255,${a * 0.15})`);
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g; ctx.fillRect(tx - t.r * 4, ty - t.r * 4, t.r * 8, t.r * 8);
+      ctx.beginPath(); ctx.arc(tx, ty, t.r * 0.5, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(220,200,255,${a * 0.9})`; ctx.fill();
+    });
 
-    // ── 5. Scan lines overlay ──
+    // ── 5. Cursor ring ──
+    const rx = cursorRing.x * W, ry = cursorRing.y * H;
+    ctx.beginPath(); ctx.arc(rx, ry, cursorRing.r, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(183,160,251,0.7)'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.beginPath(); ctx.arc(rx, ry, cursorRing.r * 0.5, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(200,180,255,0.4)'; ctx.lineWidth = 1; ctx.stroke();
+    const cg = ctx.createRadialGradient(rx, ry, 0, rx, ry, 45);
+    cg.addColorStop(0, 'rgba(200,170,255,0.18)');
+    cg.addColorStop(0.5, 'rgba(150,130,230,0.06)');
+    cg.addColorStop(1, 'transparent');
+    ctx.fillStyle = cg; ctx.fillRect(rx - 45, ry - 45, 90, 90);
+
+    // ── 6. Ripples ──
+    clickRipples.forEach(r => {
+      ctx.beginPath(); ctx.arc(r.x * W, r.y * H, r.r, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(183,160,251,${r.life * 0.5})`; ctx.lineWidth = 2; ctx.stroke();
+    });
+
+    // ── 7. Mouse background glow ──
+    const mg = ctx.createRadialGradient(mouseX * W, mouseY * H, 0, mouseX * W, mouseY * H, 350);
+    mg.addColorStop(0, 'rgba(183,160,251,0.12)');
+    mg.addColorStop(0.3, 'rgba(150,130,240,0.06)');
+    mg.addColorStop(0.6, 'rgba(100,120,220,0.02)');
+    mg.addColorStop(1, 'transparent');
+    ctx.fillStyle = mg; ctx.fillRect(0, 0, W, H);
+
+    // ── 8. Scan lines ──
     ctx.fillStyle = 'rgba(16,22,42,0.03)';
-    for (let y = 0; y < H; y += 3) {
-      ctx.fillRect(0, y, W, 1);
-    }
-
-    // ── 6. Floating particles near cursor ──
-    const nearCursor = shapes.filter(s => {
-      const sx = ((s.x + Math.sin(time * s.speed + s.phase) * s.amplitude * 0.15 + (mouseX - 0.5) * 0.3) % 1 + 1) % 1;
-      const sy = ((s.y + Math.cos(time * s.speed * 1.4 + s.phase) * s.amplitude * 0.15 + (mouseY - 0.5) * 0.3) % 1 + 1) % 1;
-      return Math.hypot((sx - mouseX) * W, (sy - mouseY) * H) < 200;
-    });
+    for (let y = 0; y < H; y += 3) ctx.fillRect(0, y, W, 1);
 
     requestAnimationFrame(draw);
   }
   draw();
 })();
 
-const careers = {
-  furen: { domain: 'ENERGY & INTELLIGENCE', mark: 'ϟ', heading: '能源数字化与 AI 可视化', intro: '负责能源数字化多端产品的前端研发协作，将 AI 问答与三维可视化带入真实业务。', points: ['负责 EMS 管理端、能源大屏、H5 / App 与低代码平台，承担任务拆分、接口协同与交付推进。', '建设 AI 流式问答、设备上下文、语音输入和告警联动，完成储能模型、站点拓扑与数据图表。', '推进中英德日多语言及德国项目适配，处理时区、电价、报表与地图差异，沉淀公共能力。'], tags: ['前端技术负责', 'AI 能源问答', '三维可视化', '多端与多语言'] },
-  beta: { domain: 'PRODUCTS & CREATIVE TOOLS', mark: '✳', heading: '金融 SaaS 与智慧社区', intro: '连接金融数字营销与智慧社区业务，构建可复用的多端产品和可视化内容生产工具。', points: ['开发理财师保险计划书、数字营销与投后服务等 PC / H5 / SaaS 产品，适配 App、微信与企微。', '从 0 到 1 开发部署智慧社区后台、大屏和微信小程序，交付郑州、丽水等地智慧展馆及预约审核系统。', '开发 H5 运营工厂、短视频编辑平台和 ChatGPT 流式原型，完成配置化表单、SSR 改造与多端兼容。'], tags: ['金融 SaaS', '智慧社区', '可视化编辑器', '多端交付'] },
-  sino: { domain: 'FOUNDATIONS & LEADERSHIP', mark: '⌘', heading: '营销 SaaS 与前端团队协作', intro: '积累营销 SaaS、数字金融与移动端研发经验，并在营销 SaaS 项目中承担前端组长职责。', points: ['实现线索评级、模型圈选、智能推荐、A/B Test 与埋点分析，交付哈根达斯、雅培、一汽马自达等客户项目。', '负责技术选型、工作量评估、任务分配及研发协作，推进业务需求落地和版本交付。', '参与数字金融 App、官网及 PC / 移动端开发，覆盖行情、支付、预警、K 线与收益分析。'], tags: ['营销分析 SaaS', '前端协作', '业务建模', '多端适配'] },
-};
-
-function addTextNodes(container, tag, values) {
-  container.replaceChildren(...values.map(text => { const node = document.createElement(tag); node.textContent = text; return node; }));
-}
-function selectCareer(id) {
-  const career = careers[id];
-  if (!career) return;
-  $$('[data-career]').forEach(button => { const active = button.dataset.career === id; button.setAttribute('aria-selected', String(active)); button.tabIndex = active ? 0 : -1; });
-  $('#career-panel').setAttribute('aria-labelledby', `career-tab-${id}`);
-  $('#career-panel').dataset.activeCareer = id;
-  $('#career-domain').textContent = career.domain;
-  $('.career-panel-mark').textContent = career.mark;
-  $('#career-heading').textContent = career.heading;
-  $('#career-intro').textContent = career.intro;
-  addTextNodes($('#career-points'), 'li', career.points);
-  addTextNodes($('#career-tags'), 'span', career.tags);
-  if (!reducedMotion.matches) $('#career-panel').animate([{ opacity: .3, transform: 'translateY(7px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 280, easing: 'ease-out' });
-}
-$$('[data-career]').forEach(button => button.addEventListener('click', () => selectCareer(button.dataset.career)));
-selectCareer('furen');
-
-function setupKeyboardTabs(selector) {
-  const tabs = $$(selector);
-  tabs.forEach((tab, index) => tab.addEventListener('keydown', event => {
-    let next;
-    if (['ArrowRight', 'ArrowDown'].includes(event.key)) next = (index + 1) % tabs.length;
-    if (['ArrowLeft', 'ArrowUp'].includes(event.key)) next = (index - 1 + tabs.length) % tabs.length;
-    if (event.key === 'Home') next = 0;
-    if (event.key === 'End') next = tabs.length - 1;
-    if (next !== undefined) { event.preventDefault(); tabs[next].focus(); tabs[next].click(); }
-  }));
-}
-setupKeyboardTabs('[data-career]');
 // Scene handled by iframe in model section below
 
 const dialog = $('#project-dialog');
