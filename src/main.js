@@ -123,76 +123,7 @@ function setupKeyboardTabs(selector) {
   }));
 }
 setupKeyboardTabs('[data-career]');
-setupKeyboardTabs('[data-world]');
-
-let currentWorld = 'energy';
-let paused = reducedMotion.matches;
-const worldCopy = {
-  energy: ['3D MODEL SHOWCASE', 'Blender / Three.js / GLB', '模型展示 · 智慧能源园区'],
-};
-const posters = { energy: './assets/scene-energy.webp' };
-function selectWorld(mode) {
-  currentWorld = mode;
-  const copy = worldCopy[mode];
-  $$('[data-world]').forEach(button => { const selected = button.dataset.world === mode; button.setAttribute('aria-selected', String(selected)); button.tabIndex = selected ? 0 : -1; });
-  $('#scene-title').textContent = copy[0];
-  $('#scene-subtitle').textContent = copy[1];
-  $('#annotation-label').textContent = copy[2];
-  $('#scene-poster').src = posters[mode];
-  $('#scene-poster').alt = `${copy[1]}项目三维预览`;
-  $('.hero').dataset.world = mode;
-  $('#scene-wrap').setAttribute('aria-labelledby', `world-${mode}`);
-  scene?.setMode(mode);
-}
-$$('[data-world]').forEach(button => button.addEventListener('click', () => selectWorld(button.dataset.world)));
-function updatePauseUI() { $('#pause-symbol').textContent = paused ? '▷' : 'Ⅱ'; $('#pause-scene').setAttribute('aria-label', paused ? '播放自动动画' : '暂停自动动画'); $('#pause-scene').title = paused ? '播放自动动画' : '暂停自动动画'; $('#pause-scene').setAttribute('aria-pressed', String(paused)); }
-updatePauseUI();
-$('#pause-scene').addEventListener('click', () => { paused = !paused; scene?.setPaused(paused); updatePauseUI(); });
-$('#reset-scene').addEventListener('click', () => { scene?.resetView(); toast('已回到初始视角'); });
-reducedMotion.addEventListener('change', event => { paused = event.matches; updatePauseUI(); });
-function activateScene() {
-  if (scenePromise) return scenePromise;
-  $('#scene-loading').hidden = false;
-  scenePromise = import('./scene.js').then(({ initScene }) => {
-    scene = initScene($('#scene'), { initialMode: currentWorld, paused, suspended: $('#project-dialog').open });
-    scene.setMode(currentWorld);
-    const updateReady = () => {
-      const ready = $('#scene').dataset.sceneReady;
-      if (ready === 'true') {
-        $('#scene-wrap').classList.add('scene-live');
-        $('#scene-loading').hidden = true;
-        $('.drag-hint').innerHTML = '<span aria-hidden="true">⤧</span> 拖拽旋转 · 双指缩放';
-      } else if (ready === 'fallback') {
-        $('#scene-loading').hidden = true;
-        $('#scene-wrap').classList.remove('scene-live');
-      }
-    };
-    const observer = new MutationObserver(updateReady);
-    observer.observe($('#scene'), { attributes: true, attributeFilter: ['data-scene-ready'] });
-    updateReady();
-    return scene;
-  }).catch(() => {
-    scenePromise = null;
-    $('#scene-loading').hidden = true;
-    toast('三维演示加载失败，简历内容可正常查看');
-  });
-  return scenePromise;
-}
-// Scene only loaded when AIMagic tab is activated (currently hidden)
-
-$('#fullscreen-scene').addEventListener('click', async () => {
-  try {
-    if (document.fullscreenElement) await document.exitFullscreen();
-    else if ($('.hero').requestFullscreen) await $('.hero').requestFullscreen();
-    else {
-      const active = $('.hero').classList.toggle('immersive');
-      document.body.classList.toggle('immersive-open', active);
-      $('#fullscreen-scene').setAttribute('aria-label', active ? '退出沉浸模式' : '进入沉浸模式');
-      toast(active ? '已进入沉浸模式，点击 ⛶ 返回' : '已返回作品集');
-    }
-  } catch { toast('当前浏览器暂不支持全屏，仍可拖拽探索'); }
-});
-document.addEventListener('fullscreenchange', () => $('#fullscreen-scene').setAttribute('aria-label', document.fullscreenElement ? '退出沉浸模式' : '进入沉浸模式'));
+// Scene handled by iframe in model section below
 
 const dialog = $('#project-dialog');
 let dialogOpener;
@@ -343,8 +274,8 @@ window.addEventListener('scroll', () => { if (!scrollPending) { scrollPending = 
 updateNav();
 
 $$('.reveal').forEach(el => el.classList.add('visible'));
-window.addEventListener('pagehide', () => scene?.setPaused(true));
-window.addEventListener('pageshow', () => scene?.setPaused(paused));
+
+
 
 // The mobile project viewer behaves like a native sheet: drag its handle to dismiss.
 const sheetHeader = $('.dialog-top');
