@@ -17,19 +17,29 @@
   </header>
   <main>
     <section class="hero" id="home" aria-labelledby="hero-title">
-      <div class="hero-grid" aria-hidden="true"></div><div class="ambient ambient-one" aria-hidden="true"></div><div class="ambient ambient-two" aria-hidden="true"></div>
-      <div class="hero-wordmark" aria-hidden="true">FRONTEND<br>ENGINEER.</div>
-      <div class="hero-copy">
-        <p class="eyebrow"><span class="live-dot"></span> 个人简历 / RESUME</p>
-        <h1 id="hero-title">张俊杰<span class="title-dot">.</span></h1>
-        <p class="hero-role">高级前端工程师 <span>/</span> 前端组长</p>
-        <p class="hero-description">专注 AI 全栈产品开发、模型展示与复杂前端交互。<br>具备企业级项目交付与独立全栈开发运维经验。</p>
-        <div class="resume-facts"><span>8 年以上前端经验</span><span>本科 · 徐州工程学院</span></div>
-        <div class="hero-actions"><a href="#experience" class="button button-light">查看工作经历 <span aria-hidden="true">↓</span></a><a href="./zhang-junjie-resume.pdf" download="张俊杰-个人简历.pdf" class="text-link">下载简历 <span aria-hidden="true">↗</span></a></div>
+      <canvas class="hero-particles" id="hero-particles" aria-hidden="true"></canvas>
+      <div class="hero-glow" aria-hidden="true"></div>
+      <div class="hero-content">
+        <div class="hero-badge reveal"><span class="live-dot"></span> OPEN TO WORK</div>
+        <h1 id="hero-title" class="reveal">
+          <span class="hero-name">张俊杰</span><span class="hero-dot">.</span>
+        </h1>
+        <p class="hero-role reveal"><span class="role-bracket">&lt;</span> 高级前端工程师 <span class="role-divider">|</span> 前端组长 <span class="role-bracket">/&gt;</span></p>
+        <p class="hero-desc reveal">专注 AI 全栈产品开发 · 三维可视化与数字孪生 · 复杂前端交互<br>8 年以上经验 · 独立全栈开发与运维部署</p>
+        <div class="hero-stats reveal">
+          <div class="stat-card"><span class="stat-num">8+</span><span class="stat-label">年前端经验</span><div class="stat-line"></div></div>
+          <div class="stat-card"><span class="stat-num">AI</span><span class="stat-label">全栈产品</span><div class="stat-line"></div></div>
+          <div class="stat-card"><span class="stat-num">3D</span><span class="stat-label">数字孪生</span><div class="stat-line"></div></div>
+          <div class="stat-card"><span class="stat-num">DevOps</span><span class="stat-label">独立部署</span><div class="stat-line"></div></div>
+        </div>
+        <div class="hero-actions reveal">
+          <a href="#experience" class="btn-primary"><span>查看工作经历</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 13l5 5 5-5M7 6l5 5 5-5"/></svg></a>
+          <a href="./zhang-junjie-resume.pdf" download="张俊杰-个人简历.pdf" class="btn-ghost">下载简历 <span>↗</span></a>
+        </div>
       </div>
-      <div class="hero-bottom">
-        <a class="scroll-cue" href="#work"><span class="scroll-track"><i></i></span><span>查看简历<small>VIEW RESUME</small></span></a>
-        <span class="hero-edition">PERSONAL RESUME <span>2026</span></span>
+      <div class="hero-scroll" aria-hidden="true">
+        <span class="scroll-text">SCROLL</span>
+        <div class="scroll-bar"><div class="scroll-progress"></div></div>
       </div>
     </section>
 
