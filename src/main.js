@@ -303,6 +303,46 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   draw();
 })();
 
+
+const careers = {
+  furen: { domain: 'ENERGY & INTELLIGENCE', mark: 'ϟ', heading: '能源数字化与 AI 可视化', intro: '负责能源数字化多端产品的前端研发协作，将 AI 问答与三维可视化带入真实业务。', points: ['负责 EMS 管理端、能源大屏、H5 / App 与低代码平台，承担任务拆分、接口协同与交付推进。', '建设 AI 流式问答、设备上下文、语音输入和告警联动，完成储能模型、站点拓扑与数据图表。', '推进中英德日多语言及德国项目适配，处理时区、电价、报表与地图差异，沉淀公共能力。'], tags: ['前端技术负责', 'AI 能源问答', '三维可视化', '多端与多语言'] },
+  beta: { domain: 'PRODUCTS & CREATIVE TOOLS', mark: '✳', heading: '金融 SaaS 与智慧社区', intro: '连接金融数字营销与智慧社区业务，构建可复用的多端产品和可视化内容生产工具。', points: ['开发理财师保险计划书、数字营销与投后服务等 PC / H5 / SaaS 产品，适配 App、微信与企微。', '从 0 到 1 开发部署智慧社区后台、大屏和微信小程序，交付郑州、丽水等地智慧展馆及预约审核系统。', '开发 H5 运营工厂、短视频编辑平台和 ChatGPT 流式原型，完成配置化表单、SSR 改造与多端兼容。'], tags: ['金融 SaaS', '智慧社区', '可视化编辑器', '多端交付'] },
+  sino: { domain: 'FOUNDATIONS & LEADERSHIP', mark: '⌘', heading: '营销 SaaS 与前端团队协作', intro: '积累营销 SaaS、数字金融与移动端研发经验，并在营销 SaaS 项目中承担前端组长职责。', points: ['实现线索评级、模型圈选、智能推荐、A/B Test 与埋点分析，交付哈根达斯、雅培、一汽马自达等客户项目。', '负责技术选型、工作量评估、任务分配及研发协作，推进业务需求落地和版本交付。', '参与数字金融 App、官网及 PC / 移动端开发，覆盖行情、支付、预警、K 线与收益分析。'], tags: ['营销分析 SaaS', '前端协作', '业务建模', '多端适配'] },
+};
+
+function addTextNodes(container, tag, values) {
+  container.replaceChildren(...values.map(text => { const node = document.createElement(tag); node.textContent = text; return node; }));
+}
+function selectCareer(id) {
+  const career = careers[id];
+  if (!career) return;
+  $$('[data-career]').forEach(button => { const active = button.dataset.career === id; button.setAttribute('aria-selected', String(active)); button.tabIndex = active ? 0 : -1; });
+  $('#career-panel').setAttribute('aria-labelledby', `career-tab-${id}`);
+  $('#career-panel').dataset.activeCareer = id;
+  $('#career-domain').textContent = career.domain;
+  $('.career-panel-mark').textContent = career.mark;
+  $('#career-heading').textContent = career.heading;
+  $('#career-intro').textContent = career.intro;
+  addTextNodes($('#career-points'), 'li', career.points);
+  addTextNodes($('#career-tags'), 'span', career.tags);
+  if (!reducedMotion.matches) $('#career-panel').animate([{ opacity: .3, transform: 'translateY(7px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 280, easing: 'ease-out' });
+}
+$$('[data-career]').forEach(button => button.addEventListener('click', () => selectCareer(button.dataset.career)));
+selectCareer('furen');
+
+function setupKeyboardTabs(selector) {
+  const tabs = $$(selector);
+  tabs.forEach((tab, index) => tab.addEventListener('keydown', event => {
+    let next;
+    if (['ArrowRight', 'ArrowDown'].includes(event.key)) next = (index + 1) % tabs.length;
+    if (['ArrowLeft', 'ArrowUp'].includes(event.key)) next = (index - 1 + tabs.length) % tabs.length;
+    if (event.key === 'Home') next = 0;
+    if (event.key === 'End') next = tabs.length - 1;
+    if (next !== undefined) { event.preventDefault(); tabs[next].focus(); tabs[next].click(); }
+  }));
+}
+setupKeyboardTabs('[data-career]');
+
 // Scene handled by iframe in model section below
 
 const dialog = $('#project-dialog');
